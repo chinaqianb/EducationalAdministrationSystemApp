@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
+    //json序列化的插件
 }
 
 android {
@@ -37,6 +39,25 @@ android {
 }
 
 dependencies {
+    //lucide-icon库
+    implementation("com.composables:icons-lucide-android:2.2.1")
+    //导航
+    implementation("androidx.navigation:navigation-compose:2.8.5")
+    //声明式api接口
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")//客户端
+    //拦截器
+    implementation("com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0")
+    //http客户端
+    implementation("com.squareup.okhttp3:okhttp:5.4.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.4.0")
+    //json解析
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
+    //本地存储
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    //MVVM
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation("androidx.activity:activity-compose:1.8.0")
