@@ -27,6 +27,7 @@ import com.example.educationaladministrationsystem.width.jumpRoutes.Routes
 import com.example.educationaladministrationsystem.width.myPage.MyPage
 import com.example.educationaladministrationsystem.width.settings.LoginSetting
 import com.example.educationaladministrationsystem.width.settings.Settings
+import com.example.educationaladministrationsystem.width.settings.VersionInfoSetting
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class HoldWidth {
@@ -93,7 +94,7 @@ class HoldWidth {
                 Column(Modifier.padding(paddingValues)){Text("here is my_user_setting")}
             }
             composable(Routes.Setting.VERSION_INFO_SETTING){
-                Column(Modifier.padding(paddingValues)){Text("here is version_info_setting")}
+                VersionInfoSetting().InitVersionInfoSetting(paddingValues)
             }
 
         }

@@ -15,7 +15,7 @@ interface ApiService {
 
 }
 object Api{
-    private val url="https://api.github.com/repos/chinaqianb/obsidian-Remember-every-pay/releases/latest"
+    private const val url="https://api.github.com/repos/chinaqianb/EducationalAdministrationSystemApp/releases/latest"
    private val json =Json{
         ignoreUnknownKeys=true//忽略json中多余的字段
         coerceInputValues=true//空值使用默认值

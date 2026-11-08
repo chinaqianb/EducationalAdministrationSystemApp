@@ -1,5 +1,6 @@
 package com.example.educationaladministrationsystem.processLogic.eASWeb
 
+import android.app.Application
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
@@ -7,16 +8,24 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.application
+import androidx.lifecycle.viewModelScope
+import com.example.educationaladministrationsystem.processLogic.DataSave
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class EASViewModel: ViewModel() {
+class EASViewModel(application: Application): AndroidViewModel(application){
     private val _loading= MutableStateFlow(false)
     val loading= _loading.asStateFlow()
     private val _webSaveBundle=MutableStateFlow(Bundle())
     private var firstLoad=false
+    data class ThreeData(val name: String,val password: String,val url: String)
+    private var initData= ThreeData("","","")
+//    private var firstInject=false
     val webClient= object :WebViewClient(){
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
@@ -26,10 +35,12 @@ class EASViewModel: ViewModel() {
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
             _loading.value=false//结束加载
-            //注入js
-            view?.postDelayed({
-                view.evaluateJavascript(injectJsWork("2025","ing"),null)
-            },1000)
+//            if (!firstInject) {//注入js
+                view?.postDelayed({
+                    view.evaluateJavascript(injectJsWork(initData.name,initData.password),null)
+                },1000)
+//                firstInject=true
+//            }
         }
 
         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -41,9 +52,14 @@ class EASViewModel: ViewModel() {
 
     }
     fun initPage(restore:(Bundle)-> Unit,loadUrl:(Unit)-> Unit,jump: Boolean) {
-        if (firstLoad&&!jump) {Log.d("aaa","返回?"); return}
+        if (firstLoad&&!jump) { return}
         firstLoad=true
         _loading.value=true
+        viewModelScope.launch {
+           val save= DataSave(context = application.applicationContext).read()
+            initData= ThreeData(save["user_name"] ?:"", save["password"] ?:"", save["login_url"] ?:"")
+        }
+
         if (_webSaveBundle.value.containsKey("WEB_EAS_STATE")){
             restore(_webSaveBundle.value.getBundle("WEB_EAS_STATE")!!)
         }else{

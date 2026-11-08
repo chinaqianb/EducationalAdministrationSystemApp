@@ -18,7 +18,7 @@ import com.example.educationaladministrationsystem.processLogic.eASWeb.EASViewMo
 
 class EASWeb {
     @Composable
-    public fun InitEAS(paddingValues: PaddingValues,jump:Boolean=false){
+    fun InitEAS(paddingValues: PaddingValues,jump:Boolean=false){
 
             LoadWebView(url = "https://jwx.gzmtu.edu.cn/jwglxt/xtgl/login_slogin.html",paddingValues = paddingValues, jump = jump)
 
