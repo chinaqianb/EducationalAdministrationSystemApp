@@ -1,8 +1,10 @@
 package com.example.educationaladministrationsystem.width
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
@@ -22,6 +24,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.educationaladministrationsystem.width.eASWeb.EASWeb
 import com.example.educationaladministrationsystem.width.jumpRoutes.Routes
+import com.example.educationaladministrationsystem.width.myPage.MyPage
+import com.example.educationaladministrationsystem.width.settings.LoginSetting
+import com.example.educationaladministrationsystem.width.settings.Settings
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class HoldWidth {
@@ -33,19 +38,21 @@ class HoldWidth {
         val currentRoutes=navBackStackEntry?.destination?.route
         Scaffold(
             floatingActionButton = {
+//                if (currentRoutes == Routes.EAS_WEB ||currentRoutes== Routes.MY_PAGE){
                 if (currentRoutes== Routes.EAS_WEB)
                     GoBtn{
                         navController.navigate(Routes.MY_PAGE){
                 popUpTo(navController.graph.findStartDestination().id){saveState=true}
                         launchSingleTop=true
                             restoreState=true} }
-            else BackBtn { navController.navigate(
-                Routes.EAS_WEB){
-                    popUpTo(navController.graph.findStartDestination().id){saveState=true}
-                    launchSingleTop=true
-                    restoreState=true} } },
-
-
+            else BackBtn { navController.popBackStack()
+//                {
+//                    popUpTo(navController.graph.findStartDestination().id){saveState=true}
+//                    launchSingleTop=true
+//                    restoreState=true}
+                    }
+//                }
+            },
             floatingActionButtonPosition = FabPosition.Center
         ) { paddingValues ->
             InitNav(paddingValues,navController)
@@ -65,11 +72,30 @@ class HoldWidth {
             composable(Routes.CLASS_TABLE){
 
             }
-            composable(Routes.MY_PAGE){
-                Box(modifier = Modifier.padding(paddingValues)){
-                    Text("I'm steven")
-                }
+            composable(Routes.MY_PAGE) {
+                MyPage().InitMyPage(paddingValues) { str -> navController.navigate(str) }
             }
+            //My_page
+            composable(Routes.MyPage.SETTING) {
+                Settings().InitSettings(paddingValues){str->navController.navigate(str)}
+            }
+            composable(Routes.MyPage.ABOUT_US) {
+                Column(Modifier.padding(paddingValues)){Text("here is about_us")}
+            }
+            //setting
+            composable(Routes.Setting.LOGIN_SETTING){
+                LoginSetting().InitLoginSetting(paddingValues)
+            }
+            composable(Routes.Setting.CLASS_TABLE_SETTING){
+                Column(Modifier.padding(paddingValues)){Text("here is class_setting")}
+            }
+            composable(Routes.Setting.MY_USER_SETTING){
+                Column(Modifier.padding(paddingValues)){Text("here is my_user_setting")}
+            }
+            composable(Routes.Setting.VERSION_INFO_SETTING){
+                Column(Modifier.padding(paddingValues)){Text("here is version_info_setting")}
+            }
+
         }
     }
     @Composable
