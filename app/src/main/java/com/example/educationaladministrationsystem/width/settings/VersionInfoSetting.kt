@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -55,7 +56,8 @@ class VersionInfoSetting {
                 dialogTitle="已经是最新版本"
                 dialogMessage="未发现新版本"
                 onClickEvent={showDialog=false}
-             showDialog=true
+                showDialog=true
+                Log.d("version_setting","no_need_emit")
             }
         }
         LaunchedEffect(Unit){
@@ -64,6 +66,7 @@ class VersionInfoSetting {
                 dialogMessage="发现新的版本${it.tag},下载地址${it.url}"
                 onClickEvent={viewModel.downNewVersion(SettingsViewModel.VersionSettingViewModel.DownloadInf(it.tag,it.url,it.fileHash),context)}
                 showDialog=true
+                Log.d("version_setting","need_emit")
             }
         }
         LaunchedEffect(Unit){
@@ -97,7 +100,7 @@ class VersionInfoSetting {
             onPauseOrDispose {  }
         }
         if (showDialog) {
-            RenderDialog({showDialog=false},dialogTitle,dialogMessage,{onClickEvent})
+            RenderDialog({showDialog=false},dialogTitle,dialogMessage,{onClickEvent?.invoke()})
         }
         Column(Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6)),
             verticalArrangement = Arrangement.Top

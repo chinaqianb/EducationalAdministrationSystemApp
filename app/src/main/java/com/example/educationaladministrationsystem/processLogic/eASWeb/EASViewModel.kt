@@ -25,7 +25,7 @@ class EASViewModel(application: Application): AndroidViewModel(application){
     private var firstLoad=false
     data class ThreeData(val name: String,val password: String,val url: String)
     private var initData= ThreeData("","","")
-//    private var firstInject=false
+    private var firstInject: String?=null
     val webClient= object :WebViewClient(){
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
@@ -35,12 +35,9 @@ class EASViewModel(application: Application): AndroidViewModel(application){
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
             _loading.value=false//结束加载
-//            if (!firstInject) {//注入js
-                view?.postDelayed({
-                    view.evaluateJavascript(injectJsWork(initData.name,initData.password),null)
-                },1000)
-//                firstInject=true
-//            }
+            handleJsPageInject(view,url)
+
+
         }
 
         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -53,19 +50,20 @@ class EASViewModel(application: Application): AndroidViewModel(application){
     }
     fun initPage(restore:(Bundle)-> Unit,loadUrl:(Unit)-> Unit,jump: Boolean) {
         if (firstLoad&&!jump) { return}
+        if (jump){firstInject=null}
         firstLoad=true
         _loading.value=true
         viewModelScope.launch {
-           val save= DataSave(context = application.applicationContext).read()
-            initData= ThreeData(save["user_name"] ?:"", save["password"] ?:"", save["login_url"] ?:"")
-        }
+            val save = DataSave(context = application.applicationContext).read()
+            initData = ThreeData(save["user_name"] ?: "", save["password"] ?: "", save["login_url"] ?: "")
 
-        if (_webSaveBundle.value.containsKey("WEB_EAS_STATE")){
-            restore(_webSaveBundle.value.getBundle("WEB_EAS_STATE")!!)
-        }else{
-            loadUrl(Unit)
-        }
 
+            if (_webSaveBundle.value.containsKey("WEB_EAS_STATE")) {
+                restore(_webSaveBundle.value.getBundle("WEB_EAS_STATE")!!)
+            } else {
+                loadUrl(Unit)
+            }
+        }
     }
     fun saveEASView(saveDate:(Bundle)-> Unit){
         val bundle= Bundle()
@@ -75,7 +73,27 @@ class EASViewModel(application: Application): AndroidViewModel(application){
        }
 
     }
-    fun injectJsWork(name: String,password: String): String{
+    private fun handleJsPageInject(view: WebView?,url: String?){
+        if (view==null||url==null)return
+        val nowPage=url.substringBefore('?').substringBefore('#')
+        val isLoginPage=nowPage.endsWith(".html",ignoreCase = true)
+        if (!isLoginPage){//不是登录页
+            Log.d("EAS","no_login")
+            firstInject=null
+            return
+        }
+        if (nowPage==firstInject){//同一个界面第二次
+            Log.d("EAS","second")
+            return
+        }
+        firstInject=nowPage//第一次登录
+        view.postDelayed({
+            view.evaluateJavascript(injectJsWork(initData.name,initData.password),null)
+        },1000)
+
+
+    }
+    private fun injectJsWork(name: String,password: String): String{
         val js ="""
             (function () {
                 const nameInput = document.getElementById('yhm');

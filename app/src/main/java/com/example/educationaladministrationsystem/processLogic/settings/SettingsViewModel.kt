@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.PackageManagerCompat
@@ -101,23 +102,36 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         /**
          * @version 传入的版本号
          */
-        fun getThreeLay(version:String): Triple<String, String, String>{
-            val parts =version.split("\\.")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-            val padded =parts +List(3-parts.size.coerceAtLeast(3)){"0"}
-            return Triple(padded[0],padded[1],padded[2])
+        fun getThreeLay(version: String): Triple<Int, Int, Int> {
+            val parts = version
+                .trim()
+                .removePrefix("v")
+                .removePrefix("V")
+                .substringBefore("-")
+                .split('.')                     // ← 关键：按字符 '.' 分割
+                .map { it.trim().toIntOrNull() ?: 0 }
+
+            return Triple(
+                parts.getOrElse(0) { 0 },
+                parts.getOrElse(1) { 0 },
+                parts.getOrElse(2) { 0 }
+            )
         }
         fun checkVersionUpdate(context: Context){
             viewModelScope.launch {
+                Log.d("check","协程已启动")
                 try {
                     val myVersion=getVersion(context)
                     val data=Api.service.getVersionUpload()
                     val lastestVersion=data.tagName
-                    if (lastestVersion.isEmpty()){_noNeedUpdate.emit(Unit);return@launch}
+                    Log.d("check","我的版本:${myVersion},最新:${lastestVersion}")
+                    if (lastestVersion.isEmpty()){Log.d("check","no_need_empty");_noNeedUpdate.emit(Unit);return@launch}
                     val myThr=getThreeLay(myVersion)
                     val lastestThr=getThreeLay(lastestVersion)
+                    Log.d("check","myVersionT:${myThr}")
+                    Log.d("check","lastestT:${lastestThr}")
                     if (lastestThr.first==myThr.first&&lastestThr.second==myThr.second&&lastestThr.third==myThr.third){
+                        Log.d("check","no_need_equals")
                         _noNeedUpdate.emit(Unit)
                         return@launch
                     }
@@ -126,9 +140,11 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
                         ||(lastestThr.first==myThr.first&&lastestThr.second==myThr.second&&lastestThr.third>myThr.third)){
                         val lastestVersionUrl=getDownloadUrl(data)
                         val fileHash=getDownloadFileHash(data)
+                        Log.d("check","need")
                         _needUpdate.emit(DownloadInf(lastestVersion,lastestVersionUrl?:"",fileHash?:""))
                     }
                 } catch (e: Exception) {
+                    Log.d("check","error:${e.message}")
                    _hasError.emit(e.message?:"")
                 }
 

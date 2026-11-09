@@ -10,12 +10,14 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 interface ApiService {
-    @GET
+    @GET("repos/chinaqianb/EducationalAdministrationSystemApp/releases/latest")
     suspend fun getVersionUpload(): GitHubRelease
+    @GET("users/chinaqianb")
+    suspend fun getAuthor(): GithubPersonData
 
 }
 object Api{
-    private const val url="https://api.github.com/repos/chinaqianb/EducationalAdministrationSystemApp/releases/latest"
+    private const val url="https://api.github.com/"
    private val json =Json{
         ignoreUnknownKeys=true//忽略json中多余的字段
         coerceInputValues=true//空值使用默认值

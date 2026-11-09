@@ -71,7 +71,7 @@ class HoldWidth {
                 EASWeb().InitEAS(paddingValues,true)
             }
             composable(Routes.CLASS_TABLE){
-
+                Column(Modifier.padding(paddingValues)){Text("here is class_table")}
             }
             composable(Routes.MY_PAGE) {
                 MyPage().InitMyPage(paddingValues) { str -> navController.navigate(str) }
@@ -81,7 +81,7 @@ class HoldWidth {
                 Settings().InitSettings(paddingValues){str->navController.navigate(str)}
             }
             composable(Routes.MyPage.ABOUT_US) {
-                Column(Modifier.padding(paddingValues)){Text("here is about_us")}
+                AboutUs().InitAboutUs(paddingValues)
             }
             //setting
             composable(Routes.Setting.LOGIN_SETTING){
