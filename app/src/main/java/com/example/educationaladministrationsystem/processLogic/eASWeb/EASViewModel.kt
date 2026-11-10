@@ -54,16 +54,17 @@ class EASViewModel(application: Application): AndroidViewModel(application){
         firstLoad=true
         _loading.value=true
         viewModelScope.launch {
-            val save = DataSave(context = application.applicationContext).read()
+            val dataSave = DataSave(context = application.applicationContext)
+            val save = dataSave.read(dataSave.LOGIN_SETTING_NAME)
             initData = ThreeData(save["user_name"] ?: "", save["password"] ?: "", save["login_url"] ?: "")
 
-
+        }//协程还是使用异步，不然等的太慢了
             if (_webSaveBundle.value.containsKey("WEB_EAS_STATE")) {
                 restore(_webSaveBundle.value.getBundle("WEB_EAS_STATE")!!)
             } else {
                 loadUrl(Unit)
             }
-        }
+
     }
     fun saveEASView(saveDate:(Bundle)-> Unit){
         val bundle= Bundle()

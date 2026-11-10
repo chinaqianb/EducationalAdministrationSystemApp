@@ -111,7 +111,7 @@ class VersionInfoSetting {
     @Composable
     fun RenderVersionComponent(context: Context, viewModel: SettingsViewModel.VersionSettingViewModel){
         val nowVersion=viewModel.getVersion(context)
-        Settings().RenderSettingBoxItem("版本信息",{
+        Settings().RenderSettingBoxItem("版本信息", content = {
 
             Text("当前版本:${nowVersion}")
             IconButton(

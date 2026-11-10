@@ -18,18 +18,19 @@ class DataSave(context: Context) {
     private val dataStore=context.dataStore
     private val json= Json { ignoreUnknownKeys=true }
     //key
-    private val LOGIN_SETTING_NAME= stringPreferencesKey("login_setting_name")
+    val LOGIN_SETTING_NAME= stringPreferencesKey("login_setting_name")
+    val ABOUT_US_DATA=stringPreferencesKey("about_us_data")
     //save
-    suspend fun save(data: Map<String, String>){
+    suspend fun save(data: Map<String, String>,key: Preferences.Key<String>){
 
         val data =json.encodeToString(MapSerializer(String.serializer(), String.serializer()),data)
-        dataStore.edit { it[LOGIN_SETTING_NAME]=data }
+        dataStore.edit { it[key]=data }
     }
     //read
-    suspend fun read(): Map<String, String>{
+    suspend fun read(key: Preferences.Key<String>): Map<String, String>{
         return dataStore.data.map{
             preferences ->
-            val data=preferences[LOGIN_SETTING_NAME]?:""
+            val data=preferences[key]?:""
             if (data.isEmpty())emptyMap()
             else json.decodeFromString(MapSerializer(String.serializer(), String.serializer()),data)
         }.first()

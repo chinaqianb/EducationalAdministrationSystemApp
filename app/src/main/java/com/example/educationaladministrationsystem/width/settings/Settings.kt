@@ -92,8 +92,8 @@ class Settings {
             )
     }
     @Composable
-    fun RenderSettingBoxItem(elementName: String, content:@Composable ColumnScope.()-> Unit){
-        Box(modifier = SettingBoxModifier()){
+    fun RenderSettingBoxItem(elementName: String,onclick:(()-> Unit)?=null, content:@Composable ColumnScope.()-> Unit){
+        Box(modifier = SettingBoxModifier().then(if (onclick!=null) Modifier.clickable { onclick() }else Modifier)){
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Top) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text(elementName)

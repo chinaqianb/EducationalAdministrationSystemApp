@@ -49,7 +49,7 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         val changeError= _changeError.asSharedFlow()
         init {
             viewModelScope.launch {
-                _data.value=dataSave.read()
+                _data.value=dataSave.read(dataSave.LOGIN_SETTING_NAME)
                 _userName.value=_data.value.getOrElse("user_name", { "" })
                 _password.value=_data.value.getOrElse("password",{""})
                 _loginUrl.value=_data.value.getOrElse("login_url",{""})
@@ -65,7 +65,7 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
                 try {
                     val data: Map<String, String> =mapOf("user_name" to _userName.value,"password" to _password.value,"login_url" to _loginUrl.value)
                     _data.value=data
-                    dataSave.save(_data.value)
+                    dataSave.save(_data.value, dataSave.LOGIN_SETTING_NAME)
                     _changeSuccess.emit(Unit)
                 } catch (e: Exception) {
                     _changeError.emit(e.message?:"未知")
