@@ -72,7 +72,7 @@ class Settings {
 
     }
     @Composable
-    private fun SettingBoxModifier(): Modifier{
+    fun SettingBoxModifier(): Modifier{
         return Modifier
             .padding(horizontal = 10.dp)//外边距
             .shadow(elevation = 4.dp, shape = RoundedCornerShape(12.dp),clip = false, ambientColor = Color.Black.copy(alpha = 0.1f), spotColor = Color.Black.copy(alpha = 0.1f))

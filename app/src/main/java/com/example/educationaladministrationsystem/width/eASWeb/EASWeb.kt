@@ -10,6 +10,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,19 +34,10 @@ class EASWeb {
     private fun LoadWebView(viewModel: EASViewModel= viewModel(),url: String,paddingValues: PaddingValues,jump: Boolean=false){
         val loading by viewModel.loading.collectAsStateWithLifecycle()
         var webView by remember { mutableStateOf<WebView?>(null) }
-
+       val canGoBack by viewModel.canBack.collectAsState()
         //返回操作
-        BackHandler() {
-            webView?.let {wv->
-                if (wv.canGoBack()) {
-                    val list = wv.copyBackForwardList()
-                    val backIndex = list.currentIndex - 1
-                    if (backIndex >= 0) {
-                        return@BackHandler
-                    }
-                    wv.goBack()
-                }
-            }
+        BackHandler(enabled = canGoBack) {
+            webView?.goBack()
         }
         DisposableEffect(Unit){
 

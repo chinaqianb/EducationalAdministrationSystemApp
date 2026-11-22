@@ -41,7 +41,7 @@ class MyPage {
         ){
             UserInf()
             Spacer(modifier = Modifier.height(5.dp))
-            BottomList (){str->onPage(str)}
+            BottomList{str->onPage(str)}
         }
 
     }
@@ -65,6 +65,7 @@ class MyPage {
         Box(modifier = BottomListModifier()){
             LazyColumn(modifier = Modifier.fillMaxSize()){
                 val list =listOf(BottomListElement("设置",Lucide.lucide_ic_settings, Routes.MyPage.SETTING),
+                    BottomListElement("课表",Lucide.lucide_ic_square_library, Routes.CLASS_TABLE),
                     BottomListElement("关于我们",Lucide.lucide_ic_user_star, Routes.MyPage.ABOUT_US))
                 items(list){
                     LoadListItem(it) { str -> onPage(str) }

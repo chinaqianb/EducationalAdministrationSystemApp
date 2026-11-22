@@ -115,7 +115,7 @@ class AboutUs {
             withLink(LinkAnnotation.Url(
                 url = repoUrl,
                 styles = TextLinkStyles( SpanStyle(
-                    color = Color.Blue, textDecoration = TextDecoration.Underline)
+                    textDecoration = TextDecoration.Underline)
             ))){append(repoUrl)}
             })
 

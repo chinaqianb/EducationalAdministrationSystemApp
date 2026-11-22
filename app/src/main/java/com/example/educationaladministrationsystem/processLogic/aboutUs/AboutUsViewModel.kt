@@ -2,13 +2,10 @@ package com.example.educationaladministrationsystem.processLogic.aboutUs
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.educationaladministrationsystem.processLogic.DataSave
-import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.Api
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.VersionApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -29,6 +26,8 @@ class AboutUsViewModel(application: Application): AndroidViewModel(application) 
                 _data.value.getOrElse("url",{""}))
             if (_isGet.value.name.isEmpty()||_isGet.value.authorImage.isEmpty()||_isGet.value.url.isEmpty()){
                 getAuthor()
+                _data.value=mapOf("name" to _isGet.value.name,"author_image" to _isGet.value.authorImage,"url" to _isGet.value.url)
+                save.save(_data.value,save.ABOUT_US_DATA)
             }
             _isLoading.value=false
         }
@@ -37,7 +36,7 @@ class AboutUsViewModel(application: Application): AndroidViewModel(application) 
     suspend fun getAuthor(){
             try {
                 _isLoading.value=true
-                val data =Api.service.getAuthor()
+                val data =VersionApi.service.getAuthor()
                 val info = AuthorInfo(data.name,data.avatarUrl,data.htmlUrl)
                 _isLoading.value=false
                 _isGet.value=info

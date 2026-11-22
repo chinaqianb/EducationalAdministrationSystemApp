@@ -17,8 +17,8 @@ android {
         applicationId = "com.example.educationaladministrationsystem"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 10
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -45,6 +45,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.5")
     //声明式api接口
     implementation("com.squareup.retrofit2:retrofit:3.0.0")//客户端
+    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
     //拦截器
     implementation("com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0")
     //http客户端
@@ -59,6 +60,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
     //coil
     implementation("io.coil-kt:coil-compose:2.7.0")
+    //更新app库
+    implementation("io.github.chiclaim:downloader:1.0.2")
+    //ksoup
+    // Required core library
+    implementation("com.fleeksoft.ksoup:ksoup:0.2.6")
+    implementation("com.fleeksoft.ksoup:ksoup-network:0.2.6")
 
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")

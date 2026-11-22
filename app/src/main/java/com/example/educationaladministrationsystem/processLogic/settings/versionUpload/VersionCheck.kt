@@ -6,17 +6,15 @@ import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.http.GET
-import java.net.HttpURLConnection
-import java.net.URL
 
-interface ApiService {
+interface VersionApiService {
     @GET("repos/chinaqianb/EducationalAdministrationSystemApp/releases/latest")
     suspend fun getVersionUpload(): GitHubRelease
     @GET("users/chinaqianb")
     suspend fun getAuthor(): GithubPersonData
 
 }
-object Api{
+object VersionApi{
     private const val url="https://api.github.com/"
    private val json =Json{
         ignoreUnknownKeys=true//忽略json中多余的字段
@@ -27,6 +25,6 @@ object Api{
         .baseUrl(url)
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
-    val service: ApiService=retrofit.create(ApiService::class.java)
+    val service: VersionApiService=retrofit.create(VersionApiService::class.java)
 
 }
