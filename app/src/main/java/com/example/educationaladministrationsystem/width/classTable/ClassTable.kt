@@ -161,7 +161,7 @@ class ClassTable {
             }
         }
         Box(modifier = MyClassTableModifier().height(400.dp)){
-            LazyColumn(modifier = Modifier.wrapContentWidth()){
+            LazyColumn(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally){
                 //每一行
                 items(map.size){
                     line->
@@ -244,7 +244,7 @@ class ClassTable {
     }
     @Composable
     private fun SheetItem(text: String,content: String){
-        Row(modifier = Modifier.fillMaxWidth()){
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically){
             Text(text = text)
             Text(text = content)
         }

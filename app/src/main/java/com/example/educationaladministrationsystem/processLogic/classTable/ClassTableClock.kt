@@ -56,11 +56,14 @@ object ClassTableClock {
         )
         Log.d("clock","id${classDate.id},name${classDate.className},place${classDate.classPlace},time${classDate.time.timeInMillis}")
         //设置触发
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            classDate.time.timeInMillis,//多少时间后触发
-            pendingIntent
-        )
+        //国产安卓厂商的限制，尝试用setAlarmClock
+        val info = AlarmManager.AlarmClockInfo(classDate.time.timeInMillis,null)
+        alarmManager.setAlarmClock(info,pendingIntent)
+//        alarmManager.setExactAndAllowWhileIdle(
+//            AlarmManager.RTC_WAKEUP,
+//            classDate.time.timeInMillis,//多少时间后触发
+//            pendingIntent
+//        )
     }
     data class ClassTableNoticeData(val id: Int,
                                     val className: String,

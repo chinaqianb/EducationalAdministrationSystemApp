@@ -117,6 +117,8 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         val toSettingPage=_toSettingPage.asStateFlow()
         private var _downloadProgress =MutableStateFlow(0)
         val downloadProgress =_downloadProgress.asStateFlow()
+        private val _isOnCheck =MutableStateFlow(false)
+        val isOnCheck=_isOnCheck.asStateFlow()
         private val appContext = application.applicationContext
         private val dataSave = DataSave(appContext)
         // 不受 ViewModel 生命周期影响，卸载/重建也能跑完
@@ -141,7 +143,19 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
             }
         }
 
-
+        fun isMyVersionTheNew(context: Context): Boolean{
+            if (_newVersionInf.value.tag.isEmpty()){
+                return true
+            }
+            val myVersion=getVersion(context)
+            val myThr =getThreeLay(myVersion)
+            val lastestThr=getThreeLay(_newVersionInf.value.tag)
+            val equal=lastestThr.first==myThr.first&&lastestThr.second==myThr.second&&lastestThr.third==myThr.third
+            val bigger=lastestThr.first>myThr.first
+                    ||(lastestThr.first==myThr.first&&lastestThr.second>myThr.second)
+                    ||(lastestThr.first==myThr.first&&lastestThr.second==myThr.second&&lastestThr.third>myThr.third)
+            return equal||!bigger
+        }
 
         fun getVersion(context: Context): String{
             return try {
@@ -181,6 +195,7 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
             viewModelScope.launch {
                 Log.d("check","协程已启动")
                 try {
+                    _isOnCheck.value=true
                     val myVersion=getVersion(context)
                     val data=VersionApi.service.getVersionUpload()
                     val lastestVersion=data.tagName
@@ -192,6 +207,7 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
                     Log.d("check","lastestT:${lastestThr}")
                     if (lastestThr.first==myThr.first&&lastestThr.second==myThr.second&&lastestThr.third==myThr.third){
                         Log.d("check","no_need_equals")
+                        _isOnCheck.value=false
                         _noNeedUpdate.emit(Unit)
                         return@launch
                     }
@@ -209,10 +225,12 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
                                 "hash" to inf.fileHash, "url" to inf.url),
                             dataSave.DOWNLOAD_STATE
                         )
+                        _isOnCheck.value=false
                         _needUpdate.emit(inf)
                     }
                 } catch (e: Exception) {
                     Log.d("check","error:${e.message}")
+                    _isOnCheck.value=false
                    _hasError.emit(e.message?:"")
                 }
 

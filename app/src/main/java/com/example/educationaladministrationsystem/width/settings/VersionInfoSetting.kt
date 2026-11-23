@@ -7,6 +7,12 @@ import android.os.Environment
 import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +37,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -48,6 +56,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.educationaladministrationsystem.processLogic.aboutUs.AboutUsViewModel
 import com.example.educationaladministrationsystem.processLogic.settings.SettingsViewModel
@@ -123,8 +132,18 @@ class VersionInfoSetting {
         ){
             RenderVersionComponent(context,viewModel)
             Spacer(Modifier.height(10.dp))
-            RenderVersionNew(downloadProgress,downloadFile,isOnDownload,newVersionInf,hasNewVersion,hasReadyApk,context, viewModel)
-
+            if (!viewModel.isMyVersionTheNew(context)) {
+                RenderVersionNew(
+                    downloadProgress,
+                    downloadFile,
+                    isOnDownload,
+                    newVersionInf,
+                    hasNewVersion,
+                    hasReadyApk,
+                    context,
+                    viewModel
+                )
+            }
         }
     }
     @Composable
@@ -144,13 +163,30 @@ class VersionInfoSetting {
     @Composable
     private fun RenderVersionComponent(context: Context, viewModel: SettingsViewModel.VersionSettingViewModel){
         val nowVersion=viewModel.getVersion(context)
+        val isOnCheck by viewModel.isOnCheck.collectAsStateWithLifecycle()
+        val infiniteTransition = rememberInfiniteTransition(label = "refresh")
+        val angle by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "refreshAngle"
+        )
         Settings().RenderSettingBoxItem("版本信息", content = {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
+                Text("当前版本:${nowVersion}")
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
+                Text("检查更新")
+                IconButton(
+                    onClick = {viewModel.checkVersionUpdate(context)}
+                ){ Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_refresh_ccw), contentDescription = "检查更新",
+                    modifier = Modifier.rotate(if (isOnCheck)angle else 0f))}
+            }
 
-            Text("当前版本:${nowVersion}")
-            IconButton(
-                onClick = {viewModel.checkVersionUpdate(context)}
-            ){ Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_send), contentDescription = "检查更新") }
-            Button(onClick = {viewModel.handEmit()}){Text("手动触发")}
+            //Button(onClick = {viewModel.handEmit()}){Text("手动触发")}
 
         })
     }
