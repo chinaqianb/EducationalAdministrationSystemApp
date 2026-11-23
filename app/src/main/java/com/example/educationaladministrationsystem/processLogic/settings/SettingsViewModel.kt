@@ -14,6 +14,8 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +44,7 @@ import com.example.educationaladministrationsystem.processLogic.classTable.Rqazc
 import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.VersionApi
 import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.GitHubRelease
 import com.fleeksoft.ksoup.Ksoup
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -521,5 +524,64 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
             }
         }
 
+    }
+    open class MyPageSettingViewModel(application: Application): AndroidViewModel(application){
+        private val _imageUri=MutableStateFlow<Uri>(Uri.EMPTY)
+        val imageUri=_imageUri.asStateFlow()
+        private val _userName=MutableStateFlow("")
+        val userName=_userName.asStateFlow()
+        private val _loading =MutableStateFlow(false)
+        val loading=_loading.asStateFlow()
+        init {
+            getSaveFromData()
+        }
+        fun getSaveFromData(){
+            viewModelScope.launch {
+                _loading.value=true
+                val dataSave= DataSave(application.applicationContext)
+                val data=dataSave.read(dataSave.MY_PAGE_SETTING)
+                val imageString=data["user_image"]?:""
+                if (imageString.isNotEmpty()) {
+                    val imageUri = Uri.parse(imageString)
+                    _imageUri.value=imageUri
+                }
+                val userName=data["user_name"]?:""
+                _userName.value=userName
+                _loading.value=false
+            }
+        }
+        fun imageSaveToData(uri: Uri){
+            viewModelScope.launch {
+                val context = application.applicationContext
+                context.contentResolver.takePersistableUriPermission(
+                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )//持久化
+                val dataSave = DataSave(context)
+                val old=dataSave.read(dataSave.MY_PAGE_SETTING)
+                val oldImage=old["user_image"]?:""
+                if (oldImage.isNotEmpty()){
+                    try {
+                        context.contentResolver.releasePersistableUriPermission(
+                            Uri.parse(oldImage),
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    } catch (e: SecurityException) {
+                        // 旧 Uri 可能早已失效，或本来就不是持久化授权，忽略
+                    }
+                }
+                dataSave.saveFileFromUri(uri,"images/${}")
+                dataSave.save(old+mapOf("user_image" to uri.toString()),dataSave.MY_PAGE_SETTING)
+            }
+        }
+        fun userNameToData(){
+            viewModelScope.launch {
+                val dataSave= DataSave(application.applicationContext)
+                val old=dataSave.read(dataSave.MY_PAGE_SETTING)
+                dataSave.save(old+mapOf("user_name" to _userName.value),dataSave.MY_PAGE_SETTING)
+            }
+        }
+        fun changeUserName(value:String){
+            _userName.value=value
+        }
     }
 }
