@@ -29,12 +29,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.educationaladministrationsystem.processLogic.settings.SettingsViewModel
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class MyPageSetting {
     @Composable
-    fun InitMyPage(paddingValues: PaddingValues,viewModel: SettingsViewModel.MyPageSettingViewModel){
+    fun InitMyPage(paddingValues: PaddingValues,viewModel: SettingsViewModel.MyPageSettingViewModel= viewModel()){
         val imageUri by viewModel.imageUri.collectAsState()
         val userName by viewModel.userName.collectAsState()
         val loading by viewModel.loading.collectAsState()

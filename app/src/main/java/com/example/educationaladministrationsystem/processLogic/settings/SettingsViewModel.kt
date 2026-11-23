@@ -11,6 +11,7 @@ import android.icu.util.Calendar
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -45,14 +46,17 @@ import com.example.educationaladministrationsystem.processLogic.settings.version
 import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.GitHubRelease
 import com.fleeksoft.ksoup.Ksoup
 import io.ktor.http.Url
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.security.DigestInputStream
 import java.security.MessageDigest
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import com.composables.icons.lucide.R.drawable as Lucide
 
@@ -526,7 +530,7 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
 
     }
     open class MyPageSettingViewModel(application: Application): AndroidViewModel(application){
-        private val _imageUri=MutableStateFlow<Uri>(Uri.EMPTY)
+        private val _imageUri=MutableStateFlow("")
         val imageUri=_imageUri.asStateFlow()
         private val _userName=MutableStateFlow("")
         val userName=_userName.asStateFlow()
@@ -540,37 +544,54 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
                 _loading.value=true
                 val dataSave= DataSave(application.applicationContext)
                 val data=dataSave.read(dataSave.MY_PAGE_SETTING)
-                val imageString=data["user_image"]?:""
-                if (imageString.isNotEmpty()) {
-                    val imageUri = Uri.parse(imageString)
-                    _imageUri.value=imageUri
-                }
+                _imageUri.value=data["user_image"]?:""
                 val userName=data["user_name"]?:""
-                _userName.value=userName
+                if (userName.isEmpty()){
+                    _userName.value="用户${UUID.randomUUID()}"
+                }else {
+                    _userName.value = userName
+                }
                 _loading.value=false
             }
+        }
+        fun getImageFile(path: String): File{
+            return DataSave(application.applicationContext).fileOf(path)
+        }
+        fun isImageFileExist(path: String): Boolean{
+            return path.isNotEmpty()
         }
         fun imageSaveToData(uri: Uri){
             viewModelScope.launch {
                 val context = application.applicationContext
-                context.contentResolver.takePersistableUriPermission(
-                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )//持久化
                 val dataSave = DataSave(context)
-                val old=dataSave.read(dataSave.MY_PAGE_SETTING)
-                val oldImage=old["user_image"]?:""
-                if (oldImage.isNotEmpty()){
-                    try {
-                        context.contentResolver.releasePersistableUriPermission(
-                            Uri.parse(oldImage),
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        )
-                    } catch (e: SecurityException) {
-                        // 旧 Uri 可能早已失效，或本来就不是持久化授权，忽略
-                    }
+                val ext = withContext(Dispatchers.IO) {
+                    queryFileName(context, uri)
+                        ?.substringAfterLast('.', "")
+                        ?.lowercase()
+                        ?.takeIf { it.isNotEmpty() && it.length <= 5 }
+                        ?: "jpg"
                 }
-                dataSave.saveFileFromUri(uri,"images/${}")
-                dataSave.save(old+mapOf("user_image" to uri.toString()),dataSave.MY_PAGE_SETTING)
+                val nowImagePath = "images/user_image.$ext"
+                //存入新文件
+                dataSave.saveFileFromUri(uri,nowImagePath)?:return@launch
+                val old=dataSave.read(dataSave.MY_PAGE_SETTING)
+                //写入路径
+                dataSave.save(old+mapOf("user_image" to nowImagePath),dataSave.MY_PAGE_SETTING)
+                val oldImage=old["user_image"].orEmpty()
+                if (oldImage.isNotEmpty()&& oldImage != nowImagePath){
+                    //删除旧照片
+                    dataSave.deleteFile(oldImage)
+                }
+
+            }
+        }
+        private fun queryFileName(context: Context, uri: Uri): String? {
+            val projection = arrayOf(OpenableColumns.DISPLAY_NAME)
+            return context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (idx >= 0) cursor.getString(idx) else null
+                } else null
             }
         }
         fun userNameToData(){

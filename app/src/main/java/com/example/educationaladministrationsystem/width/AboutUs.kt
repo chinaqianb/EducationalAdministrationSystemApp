@@ -45,10 +45,11 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.SubcomposeAsyncImage
 import com.example.educationaladministrationsystem.processLogic.aboutUs.AboutUsViewModel
 import com.example.educationaladministrationsystem.width.settings.Settings
 import androidx.core.net.toUri
+import coil.compose.SubcomposeAsyncImage
+
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class AboutUs {

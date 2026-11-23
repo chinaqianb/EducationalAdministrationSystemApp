@@ -19,18 +19,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.educationaladministrationsystem.processLogic.myPage.MyPageViewModel
 import com.example.educationaladministrationsystem.width.classTable.ClassTable
 import com.example.educationaladministrationsystem.width.eASWeb.EASWeb
 import com.example.educationaladministrationsystem.width.jumpRoutes.Routes
 import com.example.educationaladministrationsystem.width.myPage.MyPage
 import com.example.educationaladministrationsystem.width.settings.ClassTableSetting
 import com.example.educationaladministrationsystem.width.settings.LoginSetting
+import com.example.educationaladministrationsystem.width.settings.MyPageSetting
 import com.example.educationaladministrationsystem.width.settings.Settings
 import com.example.educationaladministrationsystem.width.settings.VersionInfoSetting
 import com.composables.icons.lucide.R.drawable as Lucide
@@ -53,6 +57,8 @@ class HoldWidth {
                 popUpTo(navController.graph.findStartDestination().id){saveState=true}
                         launchSingleTop=true
                             restoreState=true} }
+            else if(currentRoutes== Routes.MyPage.SETTING)
+                BackBtn { navController.navigate(Routes.MY_PAGE) }
             else BackBtn { navController.popBackStack()
 //                {
 //                    popUpTo(navController.graph.findStartDestination().id){saveState=true}
@@ -70,6 +76,11 @@ class HoldWidth {
     }
     @Composable
     private fun InitNav(paddingValues: PaddingValues,navController: NavHostController,snackbar: SnackbarHostState) {
+
+//        val navBackStackEntry = remember { navController.getBackStackEntry(Routes.MY_PAGE)
+//        }
+        //fuck
+//        val viewModel: MyPageViewModel = viewModel(navBackStackEntry)
 
         NavHost(
             navController = navController,
@@ -100,7 +111,7 @@ class HoldWidth {
                 ClassTableSetting().InitClassTableSetting(paddingValues)
             }
             composable(Routes.Setting.MY_USER_SETTING){
-                Column(Modifier.padding(paddingValues)){Text("here is my_user_setting")}
+                MyPageSetting().InitMyPage(paddingValues)
             }
             composable(Routes.Setting.VERSION_INFO_SETTING){
                 VersionInfoSetting().InitVersionInfoSetting(paddingValues)
