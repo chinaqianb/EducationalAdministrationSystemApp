@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.icu.util.Calendar
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
@@ -15,17 +14,9 @@ import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
@@ -35,17 +26,10 @@ import com.chiclaim.android.downloader.DownloadRequest
 import com.example.educationaladministrationsystem.R
 import com.example.educationaladministrationsystem.processLogic.DataSave
 import com.example.educationaladministrationsystem.processLogic.EASNotice
-import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableApi
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableClock
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableReceiver
-import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableViewModel
-import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableViewModel.GetClassTableListData
-import com.example.educationaladministrationsystem.processLogic.classTable.KbItem
-import com.example.educationaladministrationsystem.processLogic.classTable.RqazcItem
 import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.VersionApi
 import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.GitHubRelease
-import com.fleeksoft.ksoup.Ksoup
-import io.ktor.http.Url
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,7 +41,6 @@ import java.io.File
 import java.security.DigestInputStream
 import java.security.MessageDigest
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class SettingsViewModel(application: Application): AndroidViewModel(application) {
@@ -341,22 +324,41 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         private val _getListNumUnlegal =MutableStateFlow(false)
         val getListNumUnlegal =_getListNumUnlegal.asStateFlow()
         init {
+           refreshOrInit()
+        }
+        fun refreshOrInit(){
             viewModelScope.launch {
                 _loading.value=true
                 val dataSave = DataSave(application.applicationContext)
                 val data =dataSave.read(dataSave.CLASS_TABLE_SETTING)
-                _isOnNotice.value = data["is_on_notice"]=="1"
-                _isOnClock.value = data["is_on_clock"]=="1"
+                val saveOnNotice=data["is_on_notice"]=="1"
+                val saveOnClock=data["is_on_clock"]=="1"
+                _isOnNotice.value = saveOnNotice && checkNoticePermission()
+                _isOnClock.value = saveOnClock && checkHasClockPermission(application.applicationContext)
                 _getListNum.value= data["get_list_num"]?:"1"
                 _hasClock.value = isClockExist(application.applicationContext)
                 _loading.value=false
             }
         }
+        /**
+         * 注册获取权限结果返回函数处理
+         */
+        fun noticeRequestPermissionCallBack(result: Boolean){
+            if (result){
+                //同意权限
+                _isOnNotice.value=true
+            }else{
+                //拒绝权限
+
+            }
+        }
         fun setIsOnNotice(value:Boolean){
             _isOnNotice.value=value
+            saveSettings()
         }
         fun setIsOnClock(value: Boolean){
             _isOnClock.value=value
+            saveSettings()
         }
         fun setHasClock(){
             _hasClock.value=isClockExist(application.applicationContext)
@@ -391,7 +393,7 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
 
             return true
         }
-        fun checkHasPermission(permission: ManagedActivityResultLauncher<String, Boolean>,canNotice:()-> Unit): Boolean{
+        fun checkAndOpenPermission(permission: ManagedActivityResultLauncher<String, Boolean>, canNotice:()-> Unit): Boolean{
             var can =false
             if (Build.VERSION.SDK_INT>= Build.VERSION_CODES.TIRAMISU){
                 if (ContextCompat.checkSelfPermission(application.applicationContext, android.Manifest.permission.POST_NOTIFICATIONS)
@@ -412,9 +414,20 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         fun checkHasClockPermission(context: Context): Boolean{
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (!alarmManager.canScheduleExactAlarms()) {
+                    return false
+                }
+            }
+            return true
+        }
+        fun checkHasClockAndOpenPermission(context: Context): Boolean{
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
                 if (!alarmManager.canScheduleExactAlarms()) {
-                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                    }
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(intent)
                     return false
@@ -453,11 +466,11 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         fun needOpenClock(context: Context,noticePermission: ManagedActivityResultLauncher<String, Boolean>){
             viewModelScope.launch {
                 //检查权限和缓存中是否有内容
-                if (!checkHasPermission(noticePermission){}){
+                if (!checkAndOpenPermission(noticePermission){}){
                     _errorOpen.emit(DialogMes("没有通知权限","应用没有系统通知的权限，请到设置中打开"))
                     return@launch
                 }
-                if (!checkHasClockPermission(context)){
+                if (!checkHasClockAndOpenPermission(context)){
                     _errorOpen.emit(DialogMes("没有设置提醒的权限","应用没有设置提醒的权限，请到设置中打开"))
                     return@launch
                 }
@@ -478,7 +491,7 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         }
 
         fun testNotice(permission: ManagedActivityResultLauncher<String, Boolean>){
-          checkHasPermission(permission,{
+          checkAndOpenPermission(permission,{
               NotificationManagerCompat.from(application.applicationContext)
                   .notify(1201,createNotice("测试标题","文字"))
 

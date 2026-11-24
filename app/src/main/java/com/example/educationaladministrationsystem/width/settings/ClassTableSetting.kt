@@ -1,7 +1,10 @@
 package com.example.educationaladministrationsystem.width.settings
 
+import android.content.ComponentName
 import android.content.Context
-import android.widget.ToggleButton
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,13 +26,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,12 +49,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.educationaladministrationsystem.processLogic.EASNotice
 import com.example.educationaladministrationsystem.processLogic.settings.SettingsViewModel
+import java.util.Locale
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class ClassTableSetting {
@@ -59,7 +70,7 @@ class ClassTableSetting {
     fun InitClassTableSetting(paddingValues: PaddingValues,viewModel: SettingsViewModel.ClassTableSettingViewModel= viewModel()){
         val activityResultLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission())
-            {isGranted-> EASNotice.noticeRequestPermissionCallBack(isGranted) }
+            {isGranted-> viewModel.noticeRequestPermissionCallBack(isGranted) }
         val isOnNotice by viewModel.isOnNotice.collectAsState()
         val isOnClock by viewModel.isOnClock.collectAsState()
         var onClickEvent by remember { mutableStateOf<(() -> Unit)?>(null)}
@@ -69,13 +80,11 @@ class ClassTableSetting {
         val cancel by viewModel.hasClock.collectAsState()
         val loading by viewModel.loading.collectAsState()
         val textFieldUnlegal by viewModel.getListNumUnlegal.collectAsState()
+        var onOpenClockDialog by remember { mutableStateOf(false) }
         val context=LocalContext.current
         LaunchedEffect(Unit){
             viewModel.sureOpen.collect {e->
-                dialogTitle=e.title
-                dialogMessage=e.mes
-                onClickEvent={viewModel.openClock(context);showDialog=false;viewModel.setHasClock()}
-                showDialog=true
+                onOpenClockDialog=true
             }
         }
         LaunchedEffect(Unit){
@@ -94,8 +103,16 @@ class ClassTableSetting {
                 showDialog=true
             }
         }
+        LifecycleResumeEffect(Unit){
+            //切回前台回调
+
+            onPauseOrDispose {  }
+        }
         if (showDialog&&dialogTitle.isNotEmpty()){
             VersionInfoSetting().RenderDialog({showDialog=false},dialogTitle,dialogMessage,{onClickEvent?.invoke()})
+        }
+        if (onOpenClockDialog){
+            AskOpenDialog(context, viewModel,{onOpenClockDialog=false},{onOpenClockDialog=false})
         }
         if (loading){
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -169,7 +186,7 @@ class ClassTableSetting {
                 Switch(checked = isOnNotice, onCheckedChange = {
                     value ->
                     if (!value)viewModel.setIsOnClock(false)
-                    viewModel.setIsOnNotice(value && viewModel.checkHasPermission(permission){})
+                    viewModel.setIsOnNotice(value && viewModel.checkAndOpenPermission(permission){})
 
                 })
 
@@ -179,7 +196,7 @@ class ClassTableSetting {
                 Text("启用提醒")
                 Switch(checked = isOnClock, onCheckedChange = {
                     value->
-                    viewModel.setIsOnClock( value && isOnNotice &&viewModel.checkHasClockPermission(context))
+                    viewModel.setIsOnClock( value && isOnNotice &&viewModel.checkHasClockAndOpenPermission(context))
                 })
             }
 
@@ -223,5 +240,79 @@ class ClassTableSetting {
                 }
             }
         })
+    }
+    @Composable
+    fun AskOpenDialog(context: Context,viewModel: SettingsViewModel.ClassTableSettingViewModel,onClose:()-> Unit,onClick:()-> Unit){
+        AlertDialog(
+            onDismissRequest = {onClose()},
+            title ={Text("是否开启提醒")},
+            text={Text(buildAnnotatedString {
+                append("通知权限,提醒权限均已开启。\n")
+                append("由于国产安卓厂商限制,需开启")
+                withStyle(style = SpanStyle(color = Color(0xFF6750A4))){append("自启动")}
+                append("权限,否则无法提醒\n")
+                append("如果没有开启，请前往设置开启自启动权限,如果已经开启或非国内手机可忽略\n")
+                withLink(LinkAnnotation.Clickable(
+                    tag = "open_start_muself",
+                    styles = TextLinkStyles(SpanStyle(
+                        textDecoration = TextDecoration.Underline, color = Color(0xFF6750A4)
+                    )),
+                    linkInteractionListener = {navigateToAutoStartSettings(context)}
+
+                )){append("开启自启动权限->")}
+
+            })},
+            confirmButton = { TextButton(onClick ={ viewModel.openClock(context);onClick();viewModel.setHasClock() }){Text("确认")} },
+            dismissButton = {TextButton(onClick = {onClose()}){Text("取消")} }
+        )
+    }
+    fun navigateToAutoStartSettings(context: Context) {
+        //获取自启动权限
+        val manufacturer = Build.MANUFACTURER.lowercase(Locale.getDefault())
+        val intent = Intent()
+        try {
+            when (manufacturer) {
+                "xiaomi" -> intent.setComponent(
+                    ComponentName(
+                        "com.miui.securitycenter",
+                        "com.miui.permcenter.autostart.AutoStartManagementActivity"
+                    )
+                )
+
+                "huawei" -> intent.setComponent(
+                    ComponentName(
+                        "com.huawei.systemmanager",
+                        "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"
+                    )
+                )
+
+                "oppo" -> intent.setComponent(
+                    ComponentName(
+                        "com.coloros.safecenter",
+                        "com.coloros.safecenter.permission.startup.StartupAppListActivity"
+                    )
+                )
+
+                "vivo" -> intent.setComponent(
+                    ComponentName(
+                        "com.vivo.permissionmanager",
+                        "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"
+                    )
+                )
+
+                else -> {
+                    intent.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    intent.setData(Uri.fromParts("package", context.getPackageName(), null))
+                }
+            }
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            // 若上述页面不存在，则兜底跳转到应用详情页
+            intent.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            intent.setData(Uri.fromParts("package", context.getPackageName(), null))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        }
     }
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -80,7 +81,7 @@ class MyPage {
                 val image = viewModel.getImageFile(imageUri)
                 Row(
                     modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (viewModel.isImageFileExist(imageUri) && image.exists()) {
@@ -108,7 +109,9 @@ class MyPage {
                             contentScale = ContentScale.Crop
                         )
                     }
-                    Text(userName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(userName, fontSize = 20.sp, fontWeight = FontWeight.Bold,modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -123,6 +126,7 @@ class MyPage {
             .clip(RoundedCornerShape(10.dp))
             .background(MaterialTheme.colorScheme.surface)
             .border(0.7.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), shape = RoundedCornerShape(10.dp))
+            .padding(10.dp)
     }
     @Composable
     private fun BottomList(onPage:(String)-> Unit){

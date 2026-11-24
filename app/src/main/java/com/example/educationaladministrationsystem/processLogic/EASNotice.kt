@@ -23,16 +23,5 @@ object EASNotice {
         }
     }
 
-    /**
-     * 注册获取权限结果返回函数处理
-     */
-    fun noticeRequestPermissionCallBack(result: Boolean){
-        if (result){
-            //同意权限
 
-        }else{
-            //拒绝权限
-
-        }
-    }
 }

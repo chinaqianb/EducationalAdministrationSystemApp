@@ -57,6 +57,8 @@ class HoldWidth {
                 popUpTo(navController.graph.findStartDestination().id){saveState=true}
                         launchSingleTop=true
                             restoreState=true} }
+            else if(currentRoutes== Routes.MY_PAGE)
+                BackBtn { navController.popBackStack(Routes.EAS_WEB,false) }
             else if(currentRoutes== Routes.MyPage.SETTING)
                 BackBtn { navController.navigate(Routes.MY_PAGE) }
             else BackBtn { navController.popBackStack()
