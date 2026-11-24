@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableViewModel
 import com.example.educationaladministrationsystem.processLogic.classTable.KbItem
+import com.example.educationaladministrationsystem.processLogic.classTable.RqazcItem
 import com.example.educationaladministrationsystem.processLogic.settings.SettingsViewModel
 import com.example.educationaladministrationsystem.width.settings.Settings
 import com.composables.icons.lucide.R.drawable as Lucide
@@ -60,6 +61,7 @@ class ClassTable {
     @Composable
     fun InitClassTable(paddingValues: PaddingValues,viewModel: ClassTableViewModel= viewModel()){
         val data by viewModel.data.collectAsState()
+        val backWeekData by viewModel.backWeekData.collectAsState()
         var needShowIndex by remember { mutableStateOf<KbItem?>(null) }
         val nowWeek by viewModel.nowWeek.collectAsState()
         val allWeek by viewModel.allWeek.collectAsState()
@@ -79,7 +81,7 @@ class ClassTable {
                 TopClassTable(viewModel,data,index,nowWeek,allWeek)
                 MyClassTable(viewModel,data,index.toString(),{needData ->needShowIndex=needData ;showSheet=true })
                 if (showSheet&&needShowIndex!=null){
-                    needShowIndex?.let { SheetBox(showSheet,{showSheet=false},it) }
+                    needShowIndex?.let { SheetBox(showSheet,{showSheet=false},it,backWeekData,index) }
                 }
             }
 
@@ -94,15 +96,17 @@ class ClassTable {
             Box(modifier = Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center){
                 if (index!=1&&index!=minKey?.toInt()) IconButton(onClick = {viewModel.indexBack()},modifier = Modifier.align(Alignment.CenterStart)){ Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_chevron_left), contentDescription = "left") }
                 Text(text = index.toString(),textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium)
+                if (index.toString()==nowWeek)Text(text = "当前周",textAlign = TextAlign.Unspecified, style = MaterialTheme.typography.titleMedium)
                 if (index!=allWeek.toInt()&&index!=maxKey?.toInt())IconButton(onClick = {viewModel.indexGo()},modifier = Modifier.align(Alignment.CenterEnd)){Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_chevron_right), contentDescription = "right")}
             }
-            //Button(onClick = { viewModel.tryGetList() }){ Text("测试") }
         }
 
     }
     data class ShowClassTable(var name: String,var info: String,val isClassElement: Boolean=true)
     @Composable
-    private fun MyClassTable(viewModel: ClassTableViewModel, data: Map<String, List<KbItem>>, indexZ: String,onOpen: (data: KbItem) -> Unit){
+    private fun MyClassTable(viewModel: ClassTableViewModel,
+                             data: Map<String, List<KbItem>>,
+                             indexZ: String,onOpen: (data: KbItem) -> Unit){
         val map=listOf(
                 listOf(
                 ShowClassTable("","",false),
@@ -218,8 +222,15 @@ class ClassTable {
     }
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun SheetBox(show: Boolean,setClose:()-> Unit,data: KbItem){
+    private fun SheetBox(show: Boolean,setClose:()-> Unit,data: KbItem, backWeekData:Map<String, List<RqazcItem>>,index: Int){
         val sheetState= rememberModalBottomSheetState(skipPartiallyExpanded = false)
+        val week =backWeekData[index.toString()]?:emptyList()
+        val xqj=data.xqj?.toIntOrNull()
+        var date="未知日期"
+        if (xqj!=null){
+             date=week.firstOrNull{it.xqj==xqj}?.rq?:"未知日期"
+        }
+
         ModalBottomSheet(
             onDismissRequest = {setClose()},
             sheetState = sheetState
@@ -232,7 +243,7 @@ class ClassTable {
             Spacer(modifier = Modifier.height(5.dp))
             SheetItem("课程节数:",data.jc?:"")
             Spacer(modifier = Modifier.height(5.dp))
-            SheetItem("课程日期:",data.dateDigit?:"")
+            SheetItem("课程日期:",date)
             Spacer(modifier = Modifier.height(5.dp))
             SheetItem("上课星期:",data.xqjmc?:"")
             Spacer(modifier = Modifier.height(5.dp))

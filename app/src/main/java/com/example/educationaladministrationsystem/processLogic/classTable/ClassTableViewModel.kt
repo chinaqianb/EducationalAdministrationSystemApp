@@ -16,6 +16,8 @@ class ClassTableViewModel(application: Application) : AndroidViewModel(applicati
    private val _data = MutableStateFlow<Map<String, List<KbItem>>>(emptyMap())
     val data=_data.asStateFlow()
    private val _nowWeek =MutableStateFlow("")
+    private val _backWeekData =MutableStateFlow<Map<String, List<RqazcItem>>>(emptyMap())
+    val backWeekData=_backWeekData.asStateFlow()
     val nowWeek=_nowWeek.asStateFlow()
     private val _allWeek=MutableStateFlow("")
     val allWeek=_allWeek.asStateFlow()
@@ -29,8 +31,11 @@ class ClassTableViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private suspend fun getClassTableList(){
-        ClassTableClock.getClassTableList(application.applicationContext,{firstData, backData ->   _data.value=backData
-            _allWeek.value=firstData.weekNum})
+        ClassTableClock.getClassTableList(application.applicationContext,{firstData, backData,backWeekData ->
+            _data.value=backData
+            _allWeek.value=firstData.weekNum
+            _backWeekData.value=backWeekData
+        })
     }
 
 

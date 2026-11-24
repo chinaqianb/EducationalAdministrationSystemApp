@@ -190,7 +190,10 @@ object ClassTableClock {
         //print("第一节课:"+data["kbList"][0]["kcmc"])
         return GetClassTableListData(xnm,xqm,zs,weekNum)
     }
-    suspend fun getClassTableList(context: Context,callBack:((firstData:GetClassTableListData,backData: Map<String, List<KbItem>>)->Unit)?=null){
+    suspend fun getClassTableList(context: Context,
+                                  callBack:((firstData:GetClassTableListData,
+                                             backData: Map<String, List<KbItem>>,
+                                             backWeekData:Map<String, List<RqazcItem>>)->Unit)?=null){
          Log.d("clock","同步数据中")
         if (ClassTableApi.cookieJar.isEmpty()){
             Log.d("ClassTableViewModel","cookies is empty")
@@ -223,7 +226,7 @@ object ClassTableClock {
         dataSave.saveClassWeekDate(backWeekDate)
          Log.d("clock","同步成功")
         if (callBack!=null){
-            callBack(firstData, backData)
+            callBack(firstData, backData,backWeekDate)
         }
     }
     private fun getNeedWeek(nowWeek: String,weekNum: String,need: Int=1): List<String>{

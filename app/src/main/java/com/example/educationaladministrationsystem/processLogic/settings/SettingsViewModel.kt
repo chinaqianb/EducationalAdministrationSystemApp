@@ -321,8 +321,8 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         val loading =_loading.asStateFlow()
         private val _isOnSync=MutableStateFlow(false)
         val isOnSync =_isOnSync.asStateFlow()
-        private val _getListNumUnlegal =MutableStateFlow(false)
-        val getListNumUnlegal =_getListNumUnlegal.asStateFlow()
+
+        val numList=listOf("1","2","3","4","5","6","7","8","9","10")
         init {
            refreshOrInit()
         }
@@ -365,14 +365,13 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         }
         fun setGetListNum(value: String){
             _getListNum.value=value
+            saveSettings()
         }
         fun saveSettings(){
             viewModelScope.launch {
                 if (_getListNum.value.isEmpty()||_getListNum.value.toIntOrNull()==null||_getListNum.value.toInt()<=0){
-                    _getListNumUnlegal.value=true
                     return@launch
                 }
-                _getListNumUnlegal.value=false
                 val dataSave = DataSave(application.applicationContext)
                 dataSave.save(
                     mapOf("is_on_notice" to if (_isOnNotice.value) "1" else "0",

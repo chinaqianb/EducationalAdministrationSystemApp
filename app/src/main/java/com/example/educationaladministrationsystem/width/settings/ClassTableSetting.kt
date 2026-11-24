@@ -29,8 +29,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -79,7 +86,6 @@ class ClassTableSetting {
         var dialogMessage by remember { mutableStateOf("") }
         val cancel by viewModel.hasClock.collectAsState()
         val loading by viewModel.loading.collectAsState()
-        val textFieldUnlegal by viewModel.getListNumUnlegal.collectAsState()
         var onOpenClockDialog by remember { mutableStateOf(false) }
         val context=LocalContext.current
         LaunchedEffect(Unit){
@@ -123,7 +129,7 @@ class ClassTableSetting {
                 Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6)),
                 verticalArrangement = Arrangement.Top
             ) {
-                SyncClassTable(context, viewModel,textFieldUnlegal)
+                SyncClassTable(context, viewModel)
                 RenderSetting(context, viewModel, activityResultLauncher, isOnNotice, isOnClock)
                 if (isOnNotice && isOnClock) {
                     ClockSetting(
@@ -133,15 +139,16 @@ class ClassTableSetting {
                         cancel
                     )
                 }
-                SaveSettings(viewModel)
             }
         }
     }
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun SyncClassTable(context: Context,viewModel: SettingsViewModel.ClassTableSettingViewModel,isLegal: Boolean){
+    private fun SyncClassTable(context: Context,viewModel: SettingsViewModel.ClassTableSettingViewModel){
         val textNum by  viewModel.getListNum.collectAsState()
         val infiniteTransition = rememberInfiniteTransition(label = "refresh")
         val isOnSync by viewModel.isOnSync.collectAsStateWithLifecycle()
+        var isMenuOpen by remember{ mutableStateOf(false) }
         val angle by infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
@@ -151,23 +158,49 @@ class ClassTableSetting {
             ),
             label = "refreshAngle"
         )
-        Settings().RenderSettingBoxItem("同步设置", content = {
+        Settings().RenderSettingBoxItem("课表设置", content = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
-                Text("进行同步")
+                Text("进行课表同步")
                 IconButton(onClick = {viewModel.syncClassTable()}){
                     Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_refresh_ccw), contentDescription = "refresh",
                         modifier = Modifier.rotate(if (isOnSync)angle else 0f))
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
-                Text("获取个数")
-                TextField(value = textNum,
-                    onValueChange = {value->viewModel.setGetListNum(value)},
-                    isError = isLegal,
-                    supportingText = if (isLegal){
-                        {Text("数据不合法,必须为数字且大于0的整数")}
-                    }else null
-                )
+                Text("课表获取个数")
+                ExposedDropdownMenuBox(
+                    expanded = isMenuOpen,
+                    onExpandedChange = {isMenuOpen=it}
+                ){
+                    OutlinedTextField(
+                        value = textNum,
+                        onValueChange = {},
+                        readOnly = true,                               // 只读，不弹键盘
+                        label = { Text("获取个数") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isMenuOpen)
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)  // 关键：锚定
+
+                    )
+                    ExposedDropdownMenu(
+                        expanded = isMenuOpen,
+                        onDismissRequest = {isMenuOpen=false}
+                    ){
+                        viewModel.numList.forEach { e->
+                            DropdownMenuItem(
+                                text = {Text(e)},
+                                onClick = {
+                                    viewModel.setGetListNum(e)
+                                    isMenuOpen=false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            )
+                        }
+                    }
+                }
             }
         })
     }
@@ -180,7 +213,7 @@ class ClassTableSetting {
 
                              ){
 
-        Settings().RenderSettingBoxItem("设置", content = {
+        Settings().RenderSettingBoxItem("权限设置", content = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically) {
                 Text("是否通知")
                 Switch(checked = isOnNotice, onCheckedChange = {
@@ -200,10 +233,6 @@ class ClassTableSetting {
                 })
             }
 
-//            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
-//                Text("触发")//文字居中关键verticalAlignment = Alignment.CenterVertically
-//                Button(onClick = {viewModel.testNotice(permission)}, enabled = isOnNotice&&isOnClock){ Text("触发") }
-//            }
 
         })
 
@@ -231,16 +260,8 @@ class ClassTableSetting {
             }
         })
     }
-    @Composable
-    private fun SaveSettings(viewModel: SettingsViewModel.ClassTableSettingViewModel){
-        Settings().RenderSettingBoxItem("", content = {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
-                Button(onClick = {viewModel.saveSettings()}){
-                    Text("保存设置")
-                }
-            }
-        })
-    }
+
+
     @Composable
     fun AskOpenDialog(context: Context,viewModel: SettingsViewModel.ClassTableSettingViewModel,onClose:()-> Unit,onClick:()-> Unit){
         AlertDialog(
