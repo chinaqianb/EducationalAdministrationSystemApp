@@ -79,7 +79,7 @@ class ClassTable {
                 }
             }else{
                 TopClassTable(viewModel,data,index,nowWeek,allWeek)
-                MyClassTable(viewModel,data,index.toString(),{needData ->needShowIndex=needData ;showSheet=true })
+                MyClassTable(viewModel,data,backWeekData,index.toString(),{needData ->needShowIndex=needData ;showSheet=true })
                 if (showSheet&&needShowIndex!=null){
                     needShowIndex?.let { SheetBox(showSheet,{showSheet=false},it,backWeekData,index) }
                 }
@@ -123,46 +123,47 @@ class ClassTable {
     @Composable
     private fun MyClassTable(viewModel: ClassTableViewModel,
                              data: Map<String, List<KbItem>>,
+                             backWeekData:Map<String, List<RqazcItem>>,
                              indexZ: String,onOpen: (data: KbItem) -> Unit){
-        val map=listOf(
+        val map= mutableListOf(
                 listOf(
                 ShowClassTable("","",false),
-                ShowClassTable("周一","",false),
-                ShowClassTable("周二","",false),
-                ShowClassTable("周三","",false),
-                ShowClassTable("周四","",false),
-                ShowClassTable("周五","",false),
-                ShowClassTable("周六","",false),
-                ShowClassTable("周日","",false)),
-           listOf( ShowClassTable("1","08:10-9:50",false),ShowClassTable("",""),
+                ShowClassTable("星期一","",false),
+                ShowClassTable("星期二","",false),
+                ShowClassTable("星期三","",false),
+                ShowClassTable("星期四","",false),
+                ShowClassTable("星期五","",false),
+                ShowClassTable("星期六","",false),
+                ShowClassTable("星期日","",false)),
+           listOf( ShowClassTable("1","08:10\n9:50",false),ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("","")),
-             listOf(ShowClassTable("2","10:10-11:50",false),ShowClassTable("",""),
+             listOf(ShowClassTable("2","10:10\n11:50",false),ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                  ShowClassTable("",""),
                 ShowClassTable("","")),
-             listOf(ShowClassTable("3","14:00-15:40",false),ShowClassTable("",""),
+             listOf(ShowClassTable("3","14:00\n15:40",false),ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                  ShowClassTable("",""),
                 ShowClassTable("","")),
-             listOf(ShowClassTable("4","16:00-17:40",false),ShowClassTable("",""),
+             listOf(ShowClassTable("4","16:00\n17:40",false),ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                  ShowClassTable("",""),
                 ShowClassTable("","")),
-             listOf(ShowClassTable("5","18:40-20:20",false) ,ShowClassTable("",""),
+             listOf(ShowClassTable("5","18:40\n20:20",false) ,ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
                 ShowClassTable("",""),
@@ -172,7 +173,6 @@ class ClassTable {
 
         )
         val classTo =mapOf("1-2" to 1,"3-4" to 2,"5-6" to 3,"7-8" to 4,"9-10" to 5)
-//        Log.d("classTable",data.toString())
         data[indexZ]?.forEach { e->
             if (e.jcs!=null&&classTo[e.jcs]!=null&&e.xqj!=null) {
                 val one: Int = classTo[e.jcs]!!
@@ -181,6 +181,8 @@ class ClassTable {
                 map[one][second].info=e.cdmc?:""
             }
         }
+        val weekMap=backWeekData[indexZ]?:emptyList()
+        map[0]=map[0].map { e-> e.copy(info=weekMap.firstOrNull{it.xqjmc==e.name}?.rq?:"")}
         Box(modifier = MyClassTableModifier().height(400.dp)){
             LazyColumn(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally){
                 //每一行
@@ -217,12 +219,21 @@ class ClassTable {
     }
     @Composable
     private fun ClassTableItem(data: ShowClassTable,onOpen:()-> Unit){
-        Column(modifier = if (data.isClassElement)ClassTableItemModifier().clickable { onOpen() }else ClassTableItemModifier(), verticalArrangement = Arrangement.Center){
-            Row(modifier = Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.Center) {
-                Text(data.name, fontSize = if (data.isClassElement)9.sp else 15.sp)
-            }//15
+        Column(modifier = if (data.isClassElement)ClassTableItemModifier().clickable { onOpen() }else ClassTableItemModifier(),
+            verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally){
+
+                Text(data.name, fontSize = if (data.isClassElement)9.sp else 11.sp)
+
 
             Text(data.info, fontSize = 7.sp)
+//            Column(
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Center
+//            ){
+//                Text(data.name, fontSize = if (data.isClassElement)9.sp else 15.sp)
+//                Text(data.info, fontSize = 7.sp)
+//            }
         }
     }
     @Composable
@@ -244,6 +255,7 @@ class ClassTable {
         val week =backWeekData[index.toString()]?:emptyList()
         val xqj=data.xqj?.toIntOrNull()
         var date="未知日期"
+//        Log.d("ClassTabel","xqj:${xqj},date:${week}")
         if (xqj!=null){
              date=week.firstOrNull{it.xqj==xqj}?.rq?:"未知日期"
         }

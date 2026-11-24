@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,12 +13,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,6 +36,7 @@ class LoginSetting {
         val user by viewModel.userName.collectAsState()
         val password by viewModel.password.collectAsState()
         val url by viewModel.loginUrl.collectAsState()
+        val jsInjectOn by viewModel.isJSInjectOn.collectAsState()
         val context= LocalContext.current
         LaunchedEffect(Unit){
             viewModel.changeSuccess.collect { Toast.makeText(context,"成功修改",Toast.LENGTH_SHORT).show() }
@@ -46,6 +50,7 @@ class LoginSetting {
             NameAndPasswordSetting(user, password,viewModel)
             Spacer(Modifier.height(10.dp))
             UrlSetting(url,viewModel)
+            JSSetting(viewModel,jsInjectOn)
         }
     }
     @Composable
@@ -87,5 +92,21 @@ class LoginSetting {
                 }
             )
         }
+    }
+    @Composable
+    private fun JSSetting(viewModel: SettingsViewModel.LoginSettingViewModel,jsInjectOn: Boolean){
+        Settings().RenderSettingBoxItem("js注入设置", content = {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically) {
+                Text("是否开启js注入")
+
+                Switch(
+                    checked = jsInjectOn,
+                    onCheckedChange = { value ->
+                        viewModel.someDataChange(js = value)
+                        viewModel.changeData()
+                    }
+                )
+            }
+        })
     }
 }

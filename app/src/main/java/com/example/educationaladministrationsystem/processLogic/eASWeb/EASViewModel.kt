@@ -30,6 +30,7 @@ class EASViewModel(application: Application): AndroidViewModel(application){
     private var firstLoad=false
     data class ThreeData(val name: String,val password: String,val url: String)
     private var initData= ThreeData("","","")
+    private var isJsInjectOn =false
     private var firstInject: String?=null
     private val _canBack =MutableStateFlow(false)
     val canBack=_canBack.asStateFlow()
@@ -75,7 +76,7 @@ class EASViewModel(application: Application): AndroidViewModel(application){
             val dataSave = DataSave(context = application.applicationContext)
             val save = dataSave.read(dataSave.LOGIN_SETTING_NAME)
             initData = ThreeData(save["user_name"] ?: "", save["password"] ?: "", save["login_url"] ?: "")
-
+            isJsInjectOn=save.getOrDefault("js_inject","")=="1"
         }//协程还是使用异步，不然等的太慢了
             if (_webSaveBundle.value.containsKey("WEB_EAS_STATE")) {
                 restore(_webSaveBundle.value.getBundle("WEB_EAS_STATE")!!)
@@ -106,10 +107,11 @@ class EASViewModel(application: Application): AndroidViewModel(application){
             return null
         }
         firstInject=nowPage//第一次登录
-        view.postDelayed({
-            view.evaluateJavascript(injectJsWork(initData.name,initData.password),null)
-        },1000)
-
+        if (isJsInjectOn) {
+            view.postDelayed({
+                view.evaluateJavascript(injectJsWork(initData.name, initData.password), null)
+            }, 1000)
+        }
         return null
     }
     private suspend fun getEasCookies(data: DataSave,url: String): EasCookies{

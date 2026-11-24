@@ -55,6 +55,8 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         val password=_password.asStateFlow()
         private val _loginUrl=MutableStateFlow("")
         val loginUrl=_loginUrl.asStateFlow()
+        private val _isJSInjectOn=MutableStateFlow(false)
+        val isJSInjectOn=_isJSInjectOn.asStateFlow()
         private val _changeSuccess= MutableSharedFlow<Unit>(extraBufferCapacity = 1)
         val changeSuccess= _changeSuccess.asSharedFlow()
         private val _changeError=MutableSharedFlow<String>(extraBufferCapacity = 1)
@@ -62,20 +64,25 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         init {
             viewModelScope.launch {
                 _data.value=dataSave.read(dataSave.LOGIN_SETTING_NAME)
-                _userName.value=_data.value.getOrElse("user_name", { "" })
-                _password.value=_data.value.getOrElse("password",{""})
-                _loginUrl.value=_data.value.getOrElse("login_url",{""})
+                _userName.value=_data.value.getOrDefault("user_name",  "" )
+                _password.value=_data.value.getOrDefault("password","")
+                _loginUrl.value=_data.value.getOrDefault("login_url","")
+                _isJSInjectOn.value=_data.value.getOrDefault("js_inject","")=="1"
             }
         }
-        fun someDataChange(user: String=_userName.value,password: String=_password.value,url: String=_loginUrl.value){
+        fun someDataChange(user: String=_userName.value,password: String=_password.value,url: String=_loginUrl.value,js: Boolean=_isJSInjectOn.value){
             _userName.value=user
             _password.value=password
             _loginUrl.value=url
+            _isJSInjectOn.value=js
         }
         fun changeData(){
             viewModelScope.launch {
                 try {
-                    val data: Map<String, String> =mapOf("user_name" to _userName.value,"password" to _password.value,"login_url" to _loginUrl.value)
+                    val data: Map<String, String> =mapOf("user_name" to _userName.value,
+                        "password" to _password.value,
+                        "login_url" to _loginUrl.value,
+                        "js_inject" to if (_isJSInjectOn.value)"1" else "0")
                     _data.value=data
                     dataSave.save(_data.value, dataSave.LOGIN_SETTING_NAME)
                     _changeSuccess.emit(Unit)

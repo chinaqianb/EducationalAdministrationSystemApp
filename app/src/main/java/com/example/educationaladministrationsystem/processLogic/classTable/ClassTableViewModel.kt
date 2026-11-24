@@ -59,6 +59,7 @@ class ClassTableViewModel(application: Application) : AndroidViewModel(applicati
     suspend fun getListFromDataSave(): Map<String, List<KbItem>>{
         val dataSave=DataSave(application.applicationContext)
         val list=dataSave.readClassData()
+        _backWeekData.value= ClassTableClock.getClassTableWeekDateFromData(application.applicationContext)
         val some=dataSave.read(dataSave.CLASS_TABLE_SETTING)
         _nowWeek.value=some.getOrDefault("now_week","")
         if (_nowWeek.value.isNotEmpty()){

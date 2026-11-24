@@ -74,7 +74,7 @@ object ClassTableClock {
         val dataSave= DataSave(context)
         return dataSave.readClassData()
     }
-    private suspend fun getClassTableWeekDateFromData(context: Context): Map<String, List<RqazcItem>>{
+    suspend fun getClassTableWeekDateFromData(context: Context): Map<String, List<RqazcItem>>{
         return DataSave(context).readClassWeekDate()
     }
     data class WeekData(var nowWeek: String,val allWeek: String,val weekStart: String,val weekEnd: String)
