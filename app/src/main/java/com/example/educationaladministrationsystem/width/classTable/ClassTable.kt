@@ -94,10 +94,27 @@ class ClassTable {
 //        Log.d("classTable","min:${minKey},max:${maxKey},now:${index}")
         Box(modifier = Settings().SettingBoxModifier().fillMaxWidth().height(50.dp)){
             Box(modifier = Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center){
-                if (index!=1&&index!=minKey?.toInt()) IconButton(onClick = {viewModel.indexBack()},modifier = Modifier.align(Alignment.CenterStart)){ Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_chevron_left), contentDescription = "left") }
-                Text(text = index.toString(),textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium)
-                if (index.toString()==nowWeek)Text(text = "当前周",textAlign = TextAlign.Unspecified, style = MaterialTheme.typography.titleMedium)
-                if (index!=allWeek.toInt()&&index!=maxKey?.toInt())IconButton(onClick = {viewModel.indexGo()},modifier = Modifier.align(Alignment.CenterEnd)){Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_chevron_right), contentDescription = "right")}
+                if (index!=1&&index!=minKey?.toInt())
+                    IconButton(onClick = {viewModel.indexBack()},modifier = Modifier.align(Alignment.CenterStart))
+                    { Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_chevron_left), contentDescription = "left") }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = index.toString(),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    if (index.toString() == nowWeek) Text(
+                        text = "当前周",
+                        textAlign = TextAlign.Unspecified,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                if (index!=allWeek.toInt()&&index!=maxKey?.toInt())
+                    IconButton(onClick = {viewModel.indexGo()},modifier = Modifier.align(Alignment.CenterEnd))
+                    {Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_chevron_right), contentDescription = "right")}
             }
         }
 
