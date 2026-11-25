@@ -129,7 +129,7 @@ object ClassTableClock {
         time.set(Calendar.YEAR,year)
         time.set(Calendar.MONTH,month-1)//0-11
         time.set(Calendar.DAY_OF_MONTH,day)
-        time.timeInMillis -= 60*1000*20//提前20分钟提醒
+        time.timeInMillis -= 60*1000*25//提前25分钟提醒
         val now=System.currentTimeMillis()
         if (time.timeInMillis<= now) {
             Log.d("clock","过期了-课程:${e.kcmc?:""},日期:${dateStr},时间:${time.timeInMillis},当前时间:${now}")
@@ -156,8 +156,9 @@ object ClassTableClock {
             .setContentTitle(title)
             .setContentText(text)
             .setOngoing(false)//常住
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)//公开可见
             .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setTimeoutAfter(TimeUnit.MINUTES.toMillis(20))//20分钟后删除
+                .setTimeoutAfter(TimeUnit.MINUTES.toMillis(25))//25分钟后删除
 //            .setTimeoutAfter(10000)
             .build()
         //发送

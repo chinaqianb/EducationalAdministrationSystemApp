@@ -28,6 +28,10 @@ import com.example.educationaladministrationsystem.processLogic.DataSave
 import com.example.educationaladministrationsystem.processLogic.EASNotice
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableClock
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableReceiver
+import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.PasswordCrypt.decryptPassword
+import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.PasswordCrypt.encryptPassword
+import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.decryptAES
+import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.encryptAES
 import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.VersionApi
 import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.GitHubRelease
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +51,6 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
 
     class LoginSettingViewModel(application: Application): AndroidViewModel(application){
         private val _data = MutableStateFlow<Map<String, String>>(emptyMap())
-        val data=_data.asStateFlow()
         private val dataSave= DataSave(application.applicationContext)
         private val _userName=MutableStateFlow("")
         val userName=_userName.asStateFlow()
@@ -61,13 +64,22 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         val changeSuccess= _changeSuccess.asSharedFlow()
         private val _changeError=MutableSharedFlow<String>(extraBufferCapacity = 1)
         val changeError= _changeError.asSharedFlow()
+        private val _loading =MutableStateFlow(false)
+        val loading =_loading.asStateFlow()
         init {
+            readDataFromSave()
+        }
+        private fun readDataFromSave(){
             viewModelScope.launch {
-                _data.value=dataSave.read(dataSave.LOGIN_SETTING_NAME)
-                _userName.value=_data.value.getOrDefault("user_name",  "" )
-                _password.value=_data.value.getOrDefault("password","")
-                _loginUrl.value=_data.value.getOrDefault("login_url","")
-                _isJSInjectOn.value=_data.value.getOrDefault("js_inject","")=="1"
+                _loading.value=true
+                val loaded=withContext(Dispatchers.IO) {
+                    _data.value = dataSave.read(dataSave.LOGIN_SETTING_NAME)
+                    _userName.value = _data.value.getOrDefault("user_name", "").decryptAES()
+                    _password.value = _data.value.getOrDefault("password", "").decryptPassword()
+                    _loginUrl.value = _data.value.getOrDefault("login_url", "")
+                    _isJSInjectOn.value = _data.value.getOrDefault("js_inject", "") == "1"
+                }
+                _loading.value=false
             }
         }
         fun someDataChange(user: String=_userName.value,password: String=_password.value,url: String=_loginUrl.value,js: Boolean=_isJSInjectOn.value){
@@ -78,17 +90,28 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         }
         fun changeData(){
             viewModelScope.launch {
-                try {
-                    val data: Map<String, String> =mapOf("user_name" to _userName.value,
-                        "password" to _password.value,
-                        "login_url" to _loginUrl.value,
-                        "js_inject" to if (_isJSInjectOn.value)"1" else "0")
-                    _data.value=data
-                    dataSave.save(_data.value, dataSave.LOGIN_SETTING_NAME)
-                    _changeSuccess.emit(Unit)
-                } catch (e: Exception) {
-                    _changeError.emit(e.message?:"未知")
+                withContext(Dispatchers.IO) {
+                    try {
+                        val data: Map<String, String> = mapOf(
+                            "user_name" to _userName.value.encryptAES(),
+                            "password" to _password.value.encryptPassword(),
+                            "login_url" to _loginUrl.value,
+                            "js_inject" to if (_isJSInjectOn.value) "1" else "0"
+                        )
+                        _data.value = data
+                        dataSave.save(_data.value, dataSave.LOGIN_SETTING_NAME)
+                        _changeSuccess.emit(Unit)
+                    } catch (e: Exception) {
+                        _changeError.emit(e.message ?: "未知")
+                    }
                 }
+            }
+        }
+        fun testFirstPage(){
+            viewModelScope.launch {
+                val dataSave= DataSave(application.applicationContext)
+                val old=dataSave.read(dataSave.LOGIN_SETTING_NAME)
+                dataSave.save(old+mapOf("first_time" to ""),dataSave.LOGIN_SETTING_NAME)
             }
         }
     }

@@ -17,10 +17,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.educationaladministrationsystem.processLogic.DataSave
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableApi
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableClock
+import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.PasswordCrypt.decryptPassword
+import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.decryptAES
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.internal.toLongOrDefault
 
 class EASViewModel(application: Application): AndroidViewModel(application){
@@ -34,6 +38,7 @@ class EASViewModel(application: Application): AndroidViewModel(application){
     private var firstInject: String?=null
     private val _canBack =MutableStateFlow(false)
     val canBack=_canBack.asStateFlow()
+
     val webClient= object :WebViewClient(){
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
@@ -67,22 +72,29 @@ class EASViewModel(application: Application): AndroidViewModel(application){
         }
 
     }
-    fun initPage(restore:(Bundle)-> Unit,loadUrl:(Unit)-> Unit,jump: Boolean) {
+    fun initPage(restore:(Bundle)-> Unit, loadUrl:(String)-> Unit, jump: Boolean) {
         if (firstLoad&&!jump) { return}
         if (jump){firstInject=null}
         firstLoad=true
         _loading.value=true
         viewModelScope.launch {
-            val dataSave = DataSave(context = application.applicationContext)
-            val save = dataSave.read(dataSave.LOGIN_SETTING_NAME)
-            initData = ThreeData(save["user_name"] ?: "", save["password"] ?: "", save["login_url"] ?: "")
-            isJsInjectOn=save.getOrDefault("js_inject","")=="1"
-        }//协程还是使用异步，不然等的太慢了
+            withContext(Dispatchers.IO) {
+                val dataSave = DataSave(context = application.applicationContext)
+                val save = dataSave.read(dataSave.LOGIN_SETTING_NAME)
+                initData = ThreeData(
+                    (save["user_name"] ?: "").decryptAES(),
+                    (save["password"] ?: "").decryptPassword(),
+                    save["login_url"] ?: ""
+                )
+
+                isJsInjectOn = save.getOrDefault("js_inject", "") == "1"
+            }
             if (_webSaveBundle.value.containsKey("WEB_EAS_STATE")) {
                 restore(_webSaveBundle.value.getBundle("WEB_EAS_STATE")!!)
             } else {
-                loadUrl(Unit)
+                loadUrl(initData.url)
             }
+        }
 
     }
     fun saveEASView(saveDate:(Bundle)-> Unit){

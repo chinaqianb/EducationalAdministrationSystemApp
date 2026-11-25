@@ -1,5 +1,6 @@
 package com.example.educationaladministrationsystem.processLogic
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -17,7 +18,7 @@ object EASNotice {
                 .apply {
                     setSound(null, null)//没声音
                     enableVibration(false)//关闭震动
-
+                    lockscreenVisibility= Notification.VISIBILITY_PUBLIC
                 }
             context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }

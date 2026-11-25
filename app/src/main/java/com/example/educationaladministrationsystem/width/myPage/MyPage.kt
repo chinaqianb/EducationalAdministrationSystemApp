@@ -66,6 +66,7 @@ class MyPage {
             UserInf(imageUri, userName,viewModel,loading)
             Spacer(modifier = Modifier.height(5.dp))
             BottomList{str->onPage(str)}
+
         }
 
     }
@@ -134,7 +135,9 @@ class MyPage {
             LazyColumn(modifier = Modifier.fillMaxSize()){
                 val list =listOf(BottomListElement("设置",Lucide.lucide_ic_settings, Routes.MyPage.SETTING),
                     BottomListElement("课表",Lucide.lucide_ic_square_library, Routes.CLASS_TABLE),
-                    BottomListElement("关于我们",Lucide.lucide_ic_user_star, Routes.MyPage.ABOUT_US))
+                    BottomListElement("关于我们",Lucide.lucide_ic_user_star, Routes.MyPage.ABOUT_US),
+                    )
+
                 items(list){
                     LoadListItem(it) { str -> onPage(str) }
                     HorizontalDivider(thickness = 0.5.dp,color= MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

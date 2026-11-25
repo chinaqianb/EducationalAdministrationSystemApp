@@ -1,8 +1,10 @@
 package com.example.educationaladministrationsystem.width.settings
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,6 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
@@ -28,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt
 import com.example.educationaladministrationsystem.processLogic.settings.SettingsViewModel
 import com.composables.icons.lucide.R.drawable as Lucide
 class LoginSetting {
@@ -38,6 +44,7 @@ class LoginSetting {
         val url by viewModel.loginUrl.collectAsState()
         val jsInjectOn by viewModel.isJSInjectOn.collectAsState()
         val context= LocalContext.current
+        val loading by viewModel.loading.collectAsState()
         LaunchedEffect(Unit){
             viewModel.changeSuccess.collect { Toast.makeText(context,"成功修改",Toast.LENGTH_SHORT).show() }
         }
@@ -47,10 +54,16 @@ class LoginSetting {
         Column(Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6)),
             verticalArrangement = Arrangement.Top
         ){
-            NameAndPasswordSetting(user, password,viewModel)
-            Spacer(Modifier.height(10.dp))
-            UrlSetting(url,viewModel)
-            JSSetting(viewModel,jsInjectOn)
+            if (loading){
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(30.dp))//转圈动画
+                }
+            }else {
+                NameAndPasswordSetting(user, password, viewModel)
+                Spacer(Modifier.height(10.dp))
+                UrlSetting(url, viewModel)
+                JSSetting(viewModel, jsInjectOn)
+            }
         }
     }
     @Composable

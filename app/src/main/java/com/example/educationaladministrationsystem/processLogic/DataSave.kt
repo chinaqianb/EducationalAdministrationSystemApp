@@ -37,7 +37,6 @@ class DataSave(context: Context) {
     val MY_PAGE_SETTING=stringPreferencesKey("my_page_setting")
     //save
     suspend fun save(data: Map<String, String>,key: Preferences.Key<String>){
-
         val data =json.encodeToString(MapSerializer(String.serializer(), String.serializer()),data)
         dataStore.edit { it[key]=data }
     }

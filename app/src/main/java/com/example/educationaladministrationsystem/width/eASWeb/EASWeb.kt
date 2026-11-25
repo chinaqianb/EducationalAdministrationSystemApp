@@ -27,11 +27,11 @@ class EASWeb {
     @Composable
     fun InitEAS(paddingValues: PaddingValues,jump:Boolean=false){
 
-            LoadWebView(url = "https://jwx.gzmtu.edu.cn/jwglxt/xtgl/login_slogin.html",paddingValues = paddingValues, jump = jump)
+            LoadWebView(paddingValues = paddingValues, jump = jump)
 
     }
     @Composable
-    private fun LoadWebView(viewModel: EASViewModel= viewModel(),url: String,paddingValues: PaddingValues,jump: Boolean=false){
+    private fun LoadWebView(viewModel: EASViewModel= viewModel(),paddingValues: PaddingValues,jump: Boolean=false){
         val loading by viewModel.loading.collectAsStateWithLifecycle()
         var webView by remember { mutableStateOf<WebView?>(null) }
        val canGoBack by viewModel.canBack.collectAsState()
@@ -49,22 +49,24 @@ class EASWeb {
             }
         }
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-
-            AndroidView(
-                factory = {context->WebView(context).apply {
-                    webViewClient = viewModel.webClient
-                    settings.javaScriptEnabled = true
-                    viewModel.initPage({ restoreState(it)!=null }, { loadUrl(url) },jump)
-                }.also { webView=it } },
-                onRelease = { release -> viewModel.saveEASView { release.saveState(it) } },
-                modifier = WebViewModifier()
-            )
+                AndroidView(
+                    factory = { context ->
+                        WebView(context).apply {
+                            webViewClient = viewModel.webClient
+                            settings.javaScriptEnabled = true
+                            viewModel.initPage({ restoreState(it) != null }, { url->loadUrl(url) }, jump)
+                        }.also { webView = it }
+                    },
+                    onRelease = { release -> viewModel.saveEASView { release.saveState(it) } },
+                    modifier = WebViewModifier()
+                )
             if (loading){
                 //加载时
-                Box(modifier = Modifier.matchParentSize(), contentAlignment =Alignment.Center){
+                Box(modifier = Modifier.matchParentSize(), contentAlignment =Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
+
         }
 
     }

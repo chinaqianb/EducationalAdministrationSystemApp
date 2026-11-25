@@ -16,15 +16,17 @@ class ClassTableViewModel(application: Application) : AndroidViewModel(applicati
    private val _data = MutableStateFlow<Map<String, List<KbItem>>>(emptyMap())
     val data=_data.asStateFlow()
    private val _nowWeek =MutableStateFlow("")
+    val nowWeek=_nowWeek.asStateFlow()
     private val _backWeekData =MutableStateFlow<Map<String, List<RqazcItem>>>(emptyMap())
     val backWeekData=_backWeekData.asStateFlow()
-    val nowWeek=_nowWeek.asStateFlow()
     private val _allWeek=MutableStateFlow("")
     val allWeek=_allWeek.asStateFlow()
     private val _index =MutableStateFlow(0)
     val index=_index.asStateFlow()
     private val _loading =MutableStateFlow(false)
     val loading =_loading.asStateFlow()
+    private val _isError =MutableStateFlow(false)
+    val isError =_isError.asStateFlow()
     data class GetClassTableListData(val xnm: String,val xqm: String,var nowWeek: String,val weekNum: String)
     init {
         tryGetList()
@@ -41,12 +43,16 @@ class ClassTableViewModel(application: Application) : AndroidViewModel(applicati
 
     fun tryGetList(){
         viewModelScope.launch {
+            _isError.value=false
             _loading.value=true
             _data.value=getListFromDataSave()
             if (_data.value==emptyMap<String, List<KbItem>>()||_nowWeek.value==""||_allWeek.value==""){
                 getClassTableList()
             }
             _loading.value=false
+            if (_nowWeek.value==""||_allWeek.value==""){
+                _isError.value=true
+            }
 
         }
     }

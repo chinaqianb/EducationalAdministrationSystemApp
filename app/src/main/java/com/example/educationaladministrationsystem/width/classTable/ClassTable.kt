@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,6 +68,7 @@ class ClassTable {
         val allWeek by viewModel.allWeek.collectAsState()
         val loading by viewModel.loading.collectAsState()
         val index by viewModel.index.collectAsState()
+        val isError by viewModel.isError.collectAsState()
         var showSheet by remember { mutableStateOf(false) }
         Column(Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6)),
             verticalArrangement = Arrangement.Top
@@ -78,10 +80,21 @@ class ClassTable {
                     CircularProgressIndicator(modifier = Modifier.size(30.dp))//转圈动画
                 }
             }else{
-                TopClassTable(viewModel,data,index,nowWeek,allWeek)
-                MyClassTable(viewModel,data,backWeekData,index.toString(),{needData ->needShowIndex=needData ;showSheet=true })
-                if (showSheet&&needShowIndex!=null){
-                    needShowIndex?.let { SheetBox(showSheet,{showSheet=false},it,backWeekData,index) }
+                if (isError){
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                       Text("发生了一个错误\n请退出重新加载\n或请尝试同步", fontWeight = FontWeight.Bold)
+                    }
+                }else {
+                    TopClassTable(viewModel, data, index, nowWeek, allWeek)
+                    MyClassTable(
+                        viewModel,
+                        data,
+                        backWeekData,
+                        index.toString(),
+                        { needData -> needShowIndex = needData; showSheet = true })
+                    if (showSheet && needShowIndex != null) {
+                        needShowIndex?.let { SheetBox(showSheet, { showSheet = false }, it, backWeekData, index) }
+                    }
                 }
             }
 

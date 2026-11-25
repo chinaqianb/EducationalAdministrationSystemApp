@@ -64,6 +64,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -160,14 +161,20 @@ class ClassTableSetting {
         )
         Settings().RenderSettingBoxItem("课表设置", content = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
-                Text("进行课表同步")
+                Column {
+                    Text("进行课表同步")
+                    Text("将教务系统上的课表同步到本地", fontSize = 12.sp, color = Color.Gray)
+                }
                 IconButton(onClick = {viewModel.syncClassTable()}){
                     Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_refresh_ccw), contentDescription = "refresh",
                         modifier = Modifier.rotate(if (isOnSync)angle else 0f))
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
-                Text("课表获取个数")
+                Column {
+                    Text("课表获取个数")
+                    Text("获取基于当前周的课表相邻的个数\n如当前为11周,获取个数为1,\n则本地课表有10,11,12周", fontSize = 12.sp, color = Color.Gray)
+                }
                 ExposedDropdownMenuBox(
                     expanded = isMenuOpen,
                     onExpandedChange = {isMenuOpen=it}
@@ -215,7 +222,10 @@ class ClassTableSetting {
 
         Settings().RenderSettingBoxItem("权限设置", content = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically) {
-                Text("是否通知")
+                Column {
+                    Text("是否通知")
+                    Text("打开通知,用于提醒功能",fontSize = 12.sp, color = Color.Gray)
+                }
                 Switch(checked = isOnNotice, onCheckedChange = {
                     value ->
                     if (!value)viewModel.setIsOnClock(false)
@@ -226,7 +236,10 @@ class ClassTableSetting {
             }
             Spacer(modifier = Modifier.height(5.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
-                Text("启用提醒")
+                Column {
+                    Text("启用提醒")
+                    Text("开启课程提醒\n软件将会在课程开始前的一段时间发送通知\n需要系统通知,提醒,和自启动权限", fontSize = 12.sp, color = Color.Gray)
+                }
                 Switch(checked = isOnClock, onCheckedChange = {
                     value->
                     viewModel.setIsOnClock( value && isOnNotice &&viewModel.checkHasClockAndOpenPermission(context))
