@@ -32,8 +32,8 @@ import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.
 import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.PasswordCrypt.encryptPassword
 import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.decryptAES
 import com.example.educationaladministrationsystem.processLogic.eASWeb.AEScrypt.encryptAES
-import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.VersionApi
 import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.GitHubRelease
+import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.VersionApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +44,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.security.DigestInputStream
 import java.security.MessageDigest
-import java.util.UUID
+import java.util.*
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class SettingsViewModel(application: Application): AndroidViewModel(application) {
@@ -351,7 +351,8 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         val loading =_loading.asStateFlow()
         private val _isOnSync=MutableStateFlow(false)
         val isOnSync =_isOnSync.asStateFlow()
-
+        private val _error=MutableStateFlow(ClassTableClock.ErrorInfo(false,""))
+        val error=_error.asStateFlow()
         val numList=listOf("1","2","3","4","5","6","7","8","9","10")
         init {
            refreshOrInit()
@@ -565,7 +566,8 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
         fun syncClassTable(){
             viewModelScope.launch {
                 _isOnSync.value=true
-                ClassTableClock.getClassTableList(application.applicationContext)
+                _error.value= ClassTableClock.ErrorInfo(false,"")
+                _error.value=ClassTableClock.getClassTableList(application.applicationContext)
                 _isOnSync.value=false
             }
         }

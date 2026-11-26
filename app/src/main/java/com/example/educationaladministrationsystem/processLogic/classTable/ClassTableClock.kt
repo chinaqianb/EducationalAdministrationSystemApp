@@ -12,14 +12,13 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.application
 import com.example.educationaladministrationsystem.R
 import com.example.educationaladministrationsystem.processLogic.DataSave
 import com.example.educationaladministrationsystem.processLogic.EASNotice
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableViewModel.GetClassTableListData
 import com.fleeksoft.ksoup.Ksoup
 import java.time.LocalDate
-import java.util.Calendar
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 object ClassTableClock {
@@ -191,20 +190,21 @@ object ClassTableClock {
         //print("第一节课:"+data["kbList"][0]["kcmc"])
         return GetClassTableListData(xnm,xqm,zs,weekNum)
     }
+    data class ErrorInfo(val isError: Boolean,val info: String)
     suspend fun getClassTableList(context: Context,
                                   callBack:((firstData:GetClassTableListData,
                                              backData: Map<String, List<KbItem>>,
-                                             backWeekData:Map<String, List<RqazcItem>>)->Unit)?=null){
+                                             backWeekData:Map<String, List<RqazcItem>>)->Unit)?=null): ErrorInfo{
          Log.d("clock","同步数据中")
         if (ClassTableApi.cookieJar.isEmpty()){
             Log.d("ClassTableViewModel","cookies is empty")
-            return
+            return ErrorInfo(true,"cookies是空的")
         }
         val firstData=getFirstPageData()
 //        Log.d("ClassTableViewModel","获取第一份数据:${firstData}")
         if (firstData.xnm.isEmpty()||firstData.xqm.isEmpty()||firstData.nowWeek.isEmpty()){
             Log.d("ClassTableViewModel","first data is empty")
-            return
+            return ErrorInfo(true,"获取初始数据是空的")
         }
         val backData= mutableMapOf<String, List<KbItem>>()
         val backWeekDate=mutableMapOf<String, List<RqazcItem>>()
@@ -229,6 +229,7 @@ object ClassTableClock {
         if (callBack!=null){
             callBack(firstData, backData,backWeekDate)
         }
+        return ErrorInfo(false,"")
     }
     private fun getNeedWeek(nowWeek: String,weekNum: String,need: Int=1): List<String>{
         val now=nowWeek.toInt()

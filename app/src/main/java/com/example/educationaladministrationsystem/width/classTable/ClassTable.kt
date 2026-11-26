@@ -1,44 +1,13 @@
 package com.example.educationaladministrationsystem.width.classTable
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,7 +23,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableViewModel
 import com.example.educationaladministrationsystem.processLogic.classTable.KbItem
 import com.example.educationaladministrationsystem.processLogic.classTable.RqazcItem
-import com.example.educationaladministrationsystem.processLogic.settings.SettingsViewModel
 import com.example.educationaladministrationsystem.width.settings.Settings
 import com.composables.icons.lucide.R.drawable as Lucide
 
@@ -80,9 +48,9 @@ class ClassTable {
                     CircularProgressIndicator(modifier = Modifier.size(30.dp))//转圈动画
                 }
             }else{
-                if (isError){
+                if (isError.isError){
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                       Text("发生了一个错误\n请退出重新加载\n或请尝试同步", fontWeight = FontWeight.Bold)
+                       Text("发生了一个错误\n错误by:${isError.info}\n请退出重新加载\n或请尝试同步", fontWeight = FontWeight.Bold)
                     }
                 }else {
                     TopClassTable(viewModel, data, index, nowWeek, allWeek)

@@ -8,47 +8,11 @@ import android.os.Build
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -56,20 +20,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.educationaladministrationsystem.processLogic.classTable.ClassTableClock
 import com.example.educationaladministrationsystem.processLogic.settings.SettingsViewModel
-import java.util.Locale
+import java.util.*
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class ClassTableSetting {
@@ -88,6 +48,7 @@ class ClassTableSetting {
         val cancel by viewModel.hasClock.collectAsState()
         val loading by viewModel.loading.collectAsState()
         var onOpenClockDialog by remember { mutableStateOf(false) }
+        val error by viewModel.error.collectAsState()
         val context=LocalContext.current
         LaunchedEffect(Unit){
             viewModel.sureOpen.collect {e->
@@ -130,7 +91,7 @@ class ClassTableSetting {
                 Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6)),
                 verticalArrangement = Arrangement.Top
             ) {
-                SyncClassTable(context, viewModel)
+                SyncClassTable(context, viewModel,error)
                 RenderSetting(context, viewModel, activityResultLauncher, isOnNotice, isOnClock)
                 if (isOnNotice && isOnClock) {
                     ClockSetting(
@@ -145,7 +106,7 @@ class ClassTableSetting {
     }
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun SyncClassTable(context: Context,viewModel: SettingsViewModel.ClassTableSettingViewModel){
+    private fun SyncClassTable(context: Context,viewModel: SettingsViewModel.ClassTableSettingViewModel,error: ClassTableClock.ErrorInfo){
         val textNum by  viewModel.getListNum.collectAsState()
         val infiniteTransition = rememberInfiniteTransition(label = "refresh")
         val isOnSync by viewModel.isOnSync.collectAsStateWithLifecycle()
@@ -164,6 +125,7 @@ class ClassTableSetting {
                 Column {
                     Text("进行课表同步")
                     Text("将教务系统上的课表同步到本地", fontSize = 12.sp, color = Color.Gray)
+                    if (error.isError)Text("同步错误by:${error.info},请确认登录状态,再次尝试", fontSize = 12.sp, color = Color.Red)
                 }
                 IconButton(onClick = {viewModel.syncClassTable()}){
                     Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_refresh_ccw), contentDescription = "refresh",

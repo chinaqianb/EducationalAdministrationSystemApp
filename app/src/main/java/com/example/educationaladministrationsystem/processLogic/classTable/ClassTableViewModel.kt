@@ -1,16 +1,13 @@
 package com.example.educationaladministrationsystem.processLogic.classTable
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.example.educationaladministrationsystem.processLogic.DataSave
-import com.fleeksoft.ksoup.Ksoup
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlin.collections.emptyMap
 
 class ClassTableViewModel(application: Application) : AndroidViewModel(application) {
    private val _data = MutableStateFlow<Map<String, List<KbItem>>>(emptyMap())
@@ -25,15 +22,15 @@ class ClassTableViewModel(application: Application) : AndroidViewModel(applicati
     val index=_index.asStateFlow()
     private val _loading =MutableStateFlow(false)
     val loading =_loading.asStateFlow()
-    private val _isError =MutableStateFlow(false)
+    private val _isError =MutableStateFlow(ClassTableClock.ErrorInfo(false,""))
     val isError =_isError.asStateFlow()
     data class GetClassTableListData(val xnm: String,val xqm: String,var nowWeek: String,val weekNum: String)
     init {
         tryGetList()
     }
 
-    private suspend fun getClassTableList(){
-        ClassTableClock.getClassTableList(application.applicationContext,{firstData, backData,backWeekData ->
+    private suspend fun getClassTableList(): ClassTableClock.ErrorInfo{
+        return ClassTableClock.getClassTableList(application.applicationContext,{firstData, backData,backWeekData ->
             _data.value=backData
             _allWeek.value=firstData.weekNum
             _backWeekData.value=backWeekData
@@ -43,15 +40,15 @@ class ClassTableViewModel(application: Application) : AndroidViewModel(applicati
 
     fun tryGetList(){
         viewModelScope.launch {
-            _isError.value=false
+            _isError.value= ClassTableClock.ErrorInfo(false,"")
             _loading.value=true
             _data.value=getListFromDataSave()
             if (_data.value==emptyMap<String, List<KbItem>>()||_nowWeek.value==""||_allWeek.value==""){
-                getClassTableList()
+                _isError.value=getClassTableList()
             }
             _loading.value=false
-            if (_nowWeek.value==""||_allWeek.value==""){
-                _isError.value=true
+            if (!_isError.value.isError&&(_nowWeek.value==""||_allWeek.value=="")){
+                _isError.value= ClassTableClock.ErrorInfo(true,"当前周或总周数获取失败")
             }
 
         }
