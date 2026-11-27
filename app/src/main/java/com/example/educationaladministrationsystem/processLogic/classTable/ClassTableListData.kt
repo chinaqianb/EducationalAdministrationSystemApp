@@ -194,3 +194,29 @@ data class UserModel(
     @SerialName("status") val status: Int = 0,
     @SerialName("usable") val usable: Boolean = false
 )
+@Serializable
+data class ResponseWeekData(
+    val date: String,
+    val dateDigit: String,
+    val dateDigitSeparator: String,
+    val day: String,
+    val jgpxzd: String,
+    val listnav: String,
+    val localeKey: String,
+    val month: String,
+    val njxh: Int,
+    val pageTotal: Int,
+    val pageable: Boolean,
+    val queryModel: QueryModel,
+    val rangeable: Boolean,
+    val rq: String,
+    val rsdzjs: Int,
+    val sfkckkb: Boolean,
+    val totalResult: String,
+    val userModel: UserModel,
+    val year: String,
+    val zcrq: String,
+    val zcrq2: String,
+    val zs: String,
+    val zsmc: String
+)

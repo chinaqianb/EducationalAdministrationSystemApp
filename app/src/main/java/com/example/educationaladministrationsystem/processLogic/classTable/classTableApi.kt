@@ -2,26 +2,15 @@ package com.example.educationaladministrationsystem.processLogic.classTable
 
 import android.util.Log
 import com.example.educationaladministrationsystem.processLogic.eASWeb.EASViewModel
-import com.example.educationaladministrationsystem.processLogic.settings.versionUpload.VersionApi
 import kotlinx.serialization.json.Json
-import okhttp3.Cookie
-import okhttp3.CookieJar
-import okhttp3.HttpUrl
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.internal.http.toHttpDateOrNull
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.GET
+import retrofit2.http.*
 import retrofit2.http.Headers
-import retrofit2.http.POST
-import retrofit2.http.Url
 
 interface ClassTableApiService{
     @Headers(
@@ -45,6 +34,17 @@ interface ClassTableApiService{
         @Field("kblx")kblx: String="1",
         @Field("doType")doType: String="app",
     ): ScheduleResponse
+    @FormUrlEncoded
+    @Headers(
+        "Referer: https://jwx.gzmtu.edu.cn/jwglxt/kbcx/xskbcxMobile_cxTimeTableIndex.html",
+        "User-Agent: Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36",
+        "X-Requested-With: XMLHttpRequest"
+    )
+    @POST("xskbcxMobile_cxZc.html")
+    suspend fun getTermWeek(
+        @Field("xnm")xnm: String,
+        @Field("xqm")xqm: String//上学期为3,下学期为12
+    ): List<ResponseWeekData>
 }
 object ClassTableApi{
     private val url="https://jwx.gzmtu.edu.cn/jwglxt/kbcx/"

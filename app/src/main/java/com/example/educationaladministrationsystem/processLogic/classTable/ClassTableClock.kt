@@ -243,4 +243,56 @@ object ClassTableClock {
         Log.d("classTableViewModel",list.toString())
         return list
     }
+    private suspend fun getTermData():GetClassTableListData{
+        val nowTerm=getNowTerm()
+        if (!nowTerm.isNowTerm){
+            Log.d("Clock","未找到现在学期")
+            return GetClassTableListData("","","","")
+        }
+        val response= ClassTableApi.service.getTermWeek(nowTerm.year,nowTerm.term)
+        val nowWeek=getNowWeekByList(response)
+        val allWeek=response.size
+        return GetClassTableListData(nowTerm.year,nowTerm.term,nowWeek,allWeek.toString())
+    }
+    private fun getNowWeekByList(list:List<ResponseWeekData>): String{
+        val todayDate=LocalDate.now()
+        for (e in list){
+            val week=e.rq
+            val startDate= LocalDate.parse(week.substringBefore("/"))
+            val endDate= LocalDate.parse(week.substringAfter("/"))
+            if (!(todayDate.isBefore(startDate)&&todayDate.isAfter(endDate))){
+                //找到当前周
+                return e.zs
+            }
+        }
+        return ""
+    }
+    private suspend fun getNowTerm(): TermInfo{
+        //获取基于今天日期的学期信息
+        val todayDate=LocalDate.now()
+        val todayYear=todayDate.year//2026
+        //上学期
+        if (isNowTerm(todayYear.toString(),"3"))return TermInfo(true,todayYear.toString(),"3")
+        //下学期
+        if (isNowTerm((todayYear-1).toString(),"12"))return TermInfo(true,(todayYear-1).toString(),"12")
+        //-1上学期,如2026年上学期在2027年部分
+        if (isNowTerm((todayYear-1).toString(),"3"))return TermInfo(true,todayYear.toString(),"3")
+        return TermInfo(false,"2026","3")
+    }
+    //https://jwx.gzmtu.edu.cn/jwglxt/kbcx/xskbcxMobile_cxZc.html
+    //xnm 2026 xqm 3
+    // list
+    data class TermInfo(val isNowTerm: Boolean=false,val year: String,val term: String)
+    private suspend fun isNowTerm(todayYear: String,xqm: String): Boolean{
+        val todayDate=LocalDate.now()
+        //只获得年份无法判断是否是第一学期3，还是第二学期12,所以要获取之后判断区间
+        val response= ClassTableApi.service.getTermWeek(todayYear,xqm)
+        val firstDate=response.firstOrNull()?:return false
+        val lastDate=response.last()
+        //拿到这学期的起始和终止日期
+        val startDate= LocalDate.parse(firstDate.rq.substringBefore("/"))
+        val endDate= LocalDate.parse(lastDate.rq.substringAfter("/"))
+        val isTerm=!todayDate.isBefore(startDate)&&!todayDate.isAfter(endDate)
+        return isTerm
+    }
 }
