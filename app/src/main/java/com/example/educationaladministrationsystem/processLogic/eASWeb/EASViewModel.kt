@@ -1,6 +1,7 @@
 package com.example.educationaladministrationsystem.processLogic.eASWeb
 
 import android.app.Application
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
@@ -33,6 +34,7 @@ class EASViewModel(application: Application): AndroidViewModel(application){
     private val _canBack =MutableStateFlow(false)
     val canBack=_canBack.asStateFlow()
     private var lastSyncedUrl: String? = null
+    private var cachedWebView:WebView?=null
 
     val webClient= object :WebViewClient(){
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -69,12 +71,24 @@ class EASViewModel(application: Application): AndroidViewModel(application){
         }
 
     }
+    fun getOrCreateWebView(context: Context): WebView=
+        cachedWebView?: WebView(context.applicationContext).also { cachedWebView=it }
+
+    override fun onCleared() {
+        super.onCleared()
+        cachedWebView?.stopLoading()
+        cachedWebView?.destroy()
+        cachedWebView=null
+    }
     fun initPage(restore:(Bundle)-> Unit, loadUrl:(String)-> Unit, jump: Boolean) {
-        if (firstLoad&&!jump) { return}
+        if (firstLoad&&!jump) {return}
         if (jump){firstInject=null}
         firstLoad=true
         _loading.value=true
         viewModelScope.launch {
+            if (_webSaveBundle.value.containsKey("WEB_EAS_STATE")) {
+                restore(_webSaveBundle.value.getBundle("WEB_EAS_STATE")!!)
+            }
             withContext(Dispatchers.IO) {
                 val dataSave = DataSave(context = application.applicationContext)
                 val save = dataSave.read(dataSave.LOGIN_SETTING_NAME)
@@ -86,11 +100,8 @@ class EASViewModel(application: Application): AndroidViewModel(application){
 
                 isJsInjectOn = save.getOrDefault("js_inject", "") == "1"
             }
-            if (_webSaveBundle.value.containsKey("WEB_EAS_STATE")) {
-                restore(_webSaveBundle.value.getBundle("WEB_EAS_STATE")!!)
-            } else {
+            if (!_webSaveBundle.value.containsKey("WEB_EAS_STATE"))
                 loadUrl(initData.url)
-            }
         }
 
     }

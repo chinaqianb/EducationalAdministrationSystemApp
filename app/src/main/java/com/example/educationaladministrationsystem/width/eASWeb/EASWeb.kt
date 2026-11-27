@@ -48,7 +48,7 @@ class EASWeb {
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 AndroidView(
                     factory = { context ->
-                        WebView(context).apply {
+                        viewModel.getOrCreateWebView(context).apply {
                             webViewClient = viewModel.webClient
                             settings.javaScriptEnabled = true
                             layoutParams = ViewGroup.LayoutParams(
@@ -58,7 +58,7 @@ class EASWeb {
 
                         }.also { webView = it }
                     },
-                    onRelease = { release -> viewModel.saveEASView { release.saveState(it) } },
+                    onRelease = { release -> viewModel.saveEASView { release.saveState(it) };release.stopLoading() },
                     modifier = WebViewModifier()
                 )
             if (loading){
