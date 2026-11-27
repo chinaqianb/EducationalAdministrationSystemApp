@@ -1,2 +1,66 @@
-# EducationalAdministrationSystemApp
-It a Android app for EducationalAdministrationSystem login in phone
+# EducationalAdministrationSystemApp [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/chinaqianb/EducationalAdministrationSystemApp)](https://github.com/chinaqianb/EducationalAdministrationSystemApp/releases)
+这是一个围绕于某高校外包给杭州某公司所设计的教务系统所设计的软件
+## 开发缘由
+**学校的教务系统每次进入都要手动输入学号和密码，而且没有自动填入功能，鉴于这个原因，写了一个能自动登录学校教务系统的软件**
+## 声明
+本软件使用的是[CC BY-NC-ND 4.0 许可证](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.txt)
+本软件仅供学习和交流,不得用于商业用途
+## 功能
+ - 自动登录教务系统
+ - 本地课表
+ - 提醒上课课程和地点
+## 如何使用
+### 自动登录
+在首次打开app会引导用户输入学号，密码和教务系统网址
+在确保学号和密码正确之后，打开js注入功能
+在对网址哈希校验成功后进入应用
+在首页即可实现自动登录
+#### 修改学号,密码，停止js注入
+点击导航栏下面的我的图标按钮
+设置->登录设置
+即可修改学号，密码和网址，js注入设置
+(学号，密码，网址修改之后需要点击右侧的√，否则无法保存)
+### 本地课表
+配置本地课表
+我的->设置->课表设置
+ - 课表同步-将教学系统上的课表保存到本地课表中(确保教务系统登录成功(需要cookies))
+ - 课表获取个数-获取基于当前周相邻的课表周数(如当前周为11,获取个数为1时，本地课表有10，11，12周的课表)
+默认配置课表获取个数为1
+在每次登录进入教务系统时都会进行课表同步
+打开本地课表
+我的->课表
+保存了同步到本地的课表，点击课程可以查看课程信息
+### 提醒功能
+在课程开始前的一段时间，本app会发送一条系统通知包含课程名称与课程的上课地点，用于提醒上课
+系统通知不会发出声音，仅在通知栏和系统锁屏界面显示,在经过一段时间后该通知自动消失
+#### 开启提醒功能(提醒功能默认关闭，需要手动开启)
+我的->设置->课表设置
+打开课程提醒功能需要**系统通知,闹钟与提醒**权限,国产手机还需**自启动权限**
+在打开通知，启用提醒功能后，可以创建提醒
+在确保上述权限都打开后点击创建提醒,此时会弹出弹窗
+再次确认**上述权限**都打开之后即可点击确认按钮(权限缺失或者不完整都会导致无法正常提醒)
+在通知完成后会自动寻找本地课表中的下一课程(如果没有则不会提醒),你无需重新设置
+#### 取消提醒
+我的->设置->课表设置
+在允许通知，启用提醒的设置打开情况先，且已经有提醒
+会出现提醒下一节课的选项，点击关闭即可
+### 其他功能
+#### 个人头像与用户名称
+我的->设置->我的设置
+在更改个人头像选项中点击即可进入选择图片界面，选择想要使用的图片(支持gif动图)
+用户名在用户名选项处更改，更改后点击√保存(否则无法显示)
+默认头像为user头像，默认用户名则为**用户**加上随机生成的UUID
+在完成更改后即可在**我的**界面中看到相应的头像与名称
+### bug反馈
+如果遇到了bug请反馈给我
+## 技术栈
+ - 框架-android
+ - ui-[Compose](https://developer.android.google.cn/develop/ui/compose/documentation?hl=zh-cn)
+ - 显示网页-`webView`
+ - 自动登录-js代码注入
+ - 获取课表-retrofit2
+ - json解析-kotlinx-serialization-json
+ - html解析-ksoup
+ - 图标库-[lucide](https://lucide.dev/icons/)
+ - gif头像显示-coil-compose
+ - 个人信息加密-AES/GCM +加盐哈希
