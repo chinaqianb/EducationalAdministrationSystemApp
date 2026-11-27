@@ -131,7 +131,7 @@ object ClassTableClock {
         time.timeInMillis -= 60*1000*25//提前25分钟提醒
         val now=System.currentTimeMillis()
         if (time.timeInMillis<= now) {
-            Log.d("clock","过期了-课程:${e.kcmc?:""},日期:${dateStr},时间:${time.timeInMillis},当前时间:${now}")
+//            Log.d("clock","过期了-课程:${e.kcmc?:""},日期:${dateStr},时间:${time.timeInMillis},当前时间:${now}")
             //过期了
             return null
         }
@@ -200,7 +200,7 @@ object ClassTableClock {
             Log.d("ClassTableViewModel","cookies is empty")
             return ErrorInfo(true,"cookies是空的")
         }
-        val firstData=getFirstPageData()
+        val firstData=getTermData()
 //        Log.d("ClassTableViewModel","获取第一份数据:${firstData}")
         if (firstData.xnm.isEmpty()||firstData.xqm.isEmpty()||firstData.nowWeek.isEmpty()){
             Log.d("ClassTableViewModel","first data is empty")
@@ -240,7 +240,7 @@ object ClassTableClock {
         for (i in small..big){
             list.add(i.toString())
         }
-        Log.d("classTableViewModel",list.toString())
+
         return list
     }
     private suspend fun getTermData():GetClassTableListData{
@@ -249,6 +249,7 @@ object ClassTableClock {
             Log.d("Clock","未找到现在学期")
             return GetClassTableListData("","","","")
         }
+
         val response= ClassTableApi.service.getTermWeek(nowTerm.year,nowTerm.term)
         val nowWeek=getNowWeekByList(response)
         val allWeek=response.size
@@ -260,7 +261,7 @@ object ClassTableClock {
             val week=e.rq
             val startDate= LocalDate.parse(week.substringBefore("/"))
             val endDate= LocalDate.parse(week.substringAfter("/"))
-            if (!(todayDate.isBefore(startDate)&&todayDate.isAfter(endDate))){
+            if (!todayDate.isBefore(startDate)&&!todayDate.isAfter(endDate)){
                 //找到当前周
                 return e.zs
             }
@@ -277,7 +278,7 @@ object ClassTableClock {
         if (isNowTerm((todayYear-1).toString(),"12"))return TermInfo(true,(todayYear-1).toString(),"12")
         //-1上学期,如2026年上学期在2027年部分
         if (isNowTerm((todayYear-1).toString(),"3"))return TermInfo(true,todayYear.toString(),"3")
-        return TermInfo(false,"2026","3")
+        return TermInfo(false,"","")
     }
     //https://jwx.gzmtu.edu.cn/jwglxt/kbcx/xskbcxMobile_cxZc.html
     //xnm 2026 xqm 3

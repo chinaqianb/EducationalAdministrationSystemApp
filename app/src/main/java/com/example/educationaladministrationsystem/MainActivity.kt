@@ -16,13 +16,15 @@ import com.example.educationaladministrationsystem.processLogic.EASNotice
 import com.example.educationaladministrationsystem.processLogic.MainViewModel
 import com.example.educationaladministrationsystem.processLogic.classTable.NewVersionUpCheck
 import com.example.educationaladministrationsystem.width.HoldWidth
+import com.example.educationaladministrationsystem.width.eASWeb.EASWeb
 import com.example.educationaladministrationsystem.width.welcome.FirstPageWelcome
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private val appStore= CoroutineScope(SupervisorJob())
+    private val appStore= CoroutineScope(SupervisorJob()+ Dispatchers.IO)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -48,6 +50,7 @@ class MainActivity : ComponentActivity() {
             }
 
         }
+        EASWeb().webInitOnMain(this)//初始化webview
     }
 }
 

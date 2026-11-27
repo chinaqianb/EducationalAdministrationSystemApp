@@ -3,15 +3,9 @@ package com.example.educationaladministrationsystem.processLogic.eASWeb
 import android.app.Application
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.SystemClock
 import android.util.Log
-import android.webkit.CookieManager
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.example.educationaladministrationsystem.processLogic.DataSave
@@ -38,6 +32,7 @@ class EASViewModel(application: Application): AndroidViewModel(application){
     private var firstInject: String?=null
     private val _canBack =MutableStateFlow(false)
     val canBack=_canBack.asStateFlow()
+    private var lastSyncedUrl: String? = null
 
     val webClient= object :WebViewClient(){
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -48,15 +43,17 @@ class EASViewModel(application: Application): AndroidViewModel(application){
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
             _loading.value=false//结束加载
-            val thisCookies=handleJsPageInject(view,url)
-            if (thisCookies!=null&&thisCookies.jsId.isNotEmpty()&&thisCookies.route.isNotEmpty()){
+            if (url == null || url == lastSyncedUrl) return
+            val thisCookies=handleJsPageInject(view,url)?:return
+            if (thisCookies.jsId.isEmpty()||thisCookies.route.isEmpty())return
+            lastSyncedUrl=url
                 Log.d("eas","开始同步cookies:${thisCookies}")
                 ClassTableApi.cookieJar.syncCookies(url.orEmpty(),thisCookies)
                 //登录成功后强制获取一次数据
                 viewModelScope.launch {
                     ClassTableClock.getClassTableList(application.applicationContext)
                 }
-            }
+
         }
 
         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {

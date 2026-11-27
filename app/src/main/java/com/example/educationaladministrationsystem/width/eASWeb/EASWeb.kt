@@ -1,5 +1,9 @@
 package com.example.educationaladministrationsystem.width.eASWeb
 
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
@@ -32,15 +36,15 @@ class EASWeb {
         BackHandler(enabled = canGoBack) {
             webView?.goBack()
         }
-        DisposableEffect(Unit){
-
-                onDispose {
-                    webView?.let {wv->
-                    wv.stopLoading()
-                    wv.destroy()
-                }
-            }
-        }
+//        DisposableEffect(Unit){
+//
+//                onDispose {
+//                    webView?.let {wv->
+//                    wv.stopLoading()
+//                    wv.destroy()
+//                }
+//            }
+//        }
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 AndroidView(
                     factory = { context ->
@@ -51,7 +55,7 @@ class EASWeb {
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT
                             )
-                            viewModel.initPage({ restoreState(it) != null }, { url->loadUrl(url) }, jump)
+
                         }.also { webView = it }
                     },
                     onRelease = { release -> viewModel.saveEASView { release.saveState(it) } },
@@ -65,10 +69,28 @@ class EASWeb {
             }
 
         }
+        LaunchedEffect(webView){
+            webView?.let { wv->
+                viewModel.initPage({ wv.restoreState(it) != null }, { url->wv.loadUrl(url) }, jump)
+            }
+        }
 
     }
 
     private fun WebViewModifier(): Modifier{
         return Modifier.fillMaxSize()
+    }
+    fun webInitOnMain(context: Context){
+        Handler(Looper.getMainLooper()).postDelayed({
+            try {
+                WebView(context).apply {
+                    loadUrl("about:blank")
+                    destroy()
+                }
+            } catch (e: Throwable) {
+                Log.w("WebViewPreload", "preload failed", e)
+            }
+        }, 800)
+
     }
 }
