@@ -3,8 +3,7 @@
 ## 开发缘由
 **学校的教务系统每次进入都要手动输入学号和密码，没有自动填入学号密码功能，而且cookies持续时间短,由于这些原因，写了一个能自动登录学校教务系统的软件**
 ## 声明
-本软件使用的是[CC BY-NC-ND 4.0 许可证](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.txt)
-
+本软件使用的是[CC BY-NC-ND 4.0 许可证](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.txt)\
 本软件仅供学习和交流,不得用于商业用途
 ## 功能
  - 自动登录教务系统
@@ -22,13 +21,13 @@
 即可修改学号，密码和网址，js注入设置\
 (学号，密码，网址修改之后需要点击右侧的√，否则无法保存)
 ### 本地课表
-####配置本地课表
+#### 配置本地课表
 我的->设置->课表设置
  - 课表同步-将教学系统上的课表保存到本地课表中(确保教务系统登录成功(需要cookies))
  - 课表获取个数-获取基于当前周相邻的课表周数(如当前周为11,获取个数为1时，本地课表有10，11，12周的课表)\
 默认配置课表获取个数为1\
 在每次登录进入教务系统时都会进行课表同步\
-####打开本地课表
+#### 打开本地课表
 我的->课表\
 保存了同步到本地的课表，点击课程可以查看课程信息
 ### 提醒功能
@@ -65,3 +64,4 @@
  - 图标库-[lucide](https://lucide.dev/icons/)
  - gif头像显示-coil-compose
  - 个人信息加密-AES/GCM +加盐哈希
+ - markdown解析库-[multiplatform-markdown-renderer](https://github.com/mikepenz/multiplatform-markdown-renderer)

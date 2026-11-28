@@ -109,18 +109,7 @@ class VersionInfoSetting {
                     viewModel
                 )
             }
-            TestMarkdown()
         }
-    }
-    @Composable
-    private fun TestMarkdown(){
-        Settings().RenderSettingBoxItem("测试markdown", content = {
-            val content="- 修复了安装新版本之后，提醒失效的bug\r\n- 修复了webview显示错误的bug\r\n- 修改了EAS页面的架构，增加了启动的速度\r\n- 修复了进入webview界面重复重复同步课表的操作\r\n- 修复了由于教务系统的变动导致的课表无法正常同步的情况\r\n\r\n**Full Changelog**: https://github.com/chinaqianb/EducationalAdministrationSystemApp/compare/1.3.1...1.3.2"
-            Text("内容的")
-            Markdown(content)
-            Text("无内容的")
-            Markdown("未发现新版本")
-        })
     }
     @Composable
     private fun RenderVersionNew(downloadProgress: Int,file: File,isOnDownload: Boolean, versionInf: SettingsViewModel.DownloadInf, hasVersion: Boolean, hasApk: Boolean, context: Context, viewModel: SettingsViewModel.VersionSettingViewModel){
