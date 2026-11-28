@@ -115,13 +115,13 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
             }
         }
     }
-    data class DownloadInf(val tag: String,val url: String,val fileHash: String)
+    data class DownloadInf(val tag: String,val url: String,val fileHash: String,val text: String,val htmlUrl: String)
     class VersionSettingViewModel(application: Application): AndroidViewModel(application), DownloadListener {
         private val _noNeedUpdate=MutableSharedFlow<Unit>(extraBufferCapacity = 1)
         val noNeedUpdate=_noNeedUpdate.asSharedFlow()
         private val _needUpdate=MutableSharedFlow<DownloadInf>(extraBufferCapacity = 1)
         val needUpdate=_needUpdate.asSharedFlow()
-        private val _newVersionInf =MutableStateFlow<DownloadInf>(DownloadInf("","",""))
+        private val _newVersionInf =MutableStateFlow<DownloadInf>(DownloadInf("","","","",""))
         val newVersionInf=_newVersionInf.asStateFlow()
         private val _hasNewVersion =MutableStateFlow(false)
         val hasNewVersion=_hasNewVersion.asStateFlow()
@@ -155,7 +155,9 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
                 val data : Map<String, String> =dataSave.read(dataSave.DOWNLOAD_STATE)
                 _newVersionInf.value= DownloadInf(data.getOrDefault("tag",""),
                     data.getOrDefault("url",""),
-                    data.getOrDefault("hash","")
+                    data.getOrDefault("hash",""),
+                    data.getOrDefault("text",""),
+                    data.getOrDefault("html_url","")
                     )
                 if (_newVersionInf.value.tag.isNotEmpty()){
                     _hasNewVersion.value=true
@@ -213,7 +215,6 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
 
         fun checkVersionUpdate(context: Context){
             viewModelScope.launch {
-                Log.d("check","协程已启动")
                 try {
                     _isOnCheck.value=true
                     val myVersion=getVersion(context)
@@ -223,8 +224,8 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
                     if (lastestVersion.isEmpty()){Log.d("check","no_need_empty");_noNeedUpdate.emit(Unit);return@launch}
                     val myThr=getThreeLay(myVersion)
                     val lastestThr=getThreeLay(lastestVersion)
-                    Log.d("check","myVersionT:${myThr}")
-                    Log.d("check","lastestT:${lastestThr}")
+//                    Log.d("check","myVersionT:${myThr}")
+//                    Log.d("check","lastestT:${lastestThr}")
                     if (lastestThr.first==myThr.first&&lastestThr.second==myThr.second&&lastestThr.third==myThr.third){
                         Log.d("check","no_need_equals")
                         _isOnCheck.value=false
@@ -236,13 +237,15 @@ class SettingsViewModel(application: Application): AndroidViewModel(application)
                         ||(lastestThr.first==myThr.first&&lastestThr.second==myThr.second&&lastestThr.third>myThr.third)){
                         val lastestVersionUrl=getDownloadUrl(data)
                         val fileHash=getDownloadFileHash(data)
+                        val text=data.body
+                        val htmlUrl=data.htmlUrl
                         Log.d("check","need")
-                        val inf=DownloadInf(lastestVersion,lastestVersionUrl?:"",fileHash?:"")
+                        val inf=DownloadInf(lastestVersion,lastestVersionUrl?:"",fileHash?:"",text,htmlUrl)
                         _newVersionInf.value= inf
                         _hasNewVersion.value=true
                         dataSave.save(
                             mapOf( "tag" to lastestVersion,
-                                "hash" to inf.fileHash, "url" to inf.url),
+                                "hash" to inf.fileHash, "url" to inf.url,"text" to inf.text,"html_url" to htmlUrl),
                             dataSave.DOWNLOAD_STATE
                         )
                         _isOnCheck.value=false

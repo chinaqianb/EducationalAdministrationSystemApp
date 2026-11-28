@@ -200,7 +200,8 @@ class ClassTableSetting {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
                 Column {
                     Text("启用提醒")
-                    Text("开启课程提醒\n软件将会在课程开始前的一段时间发送通知\n需要系统通知,提醒,和自启动权限", fontSize = 12.sp, color = Color.Gray)
+                    Text("开启课程提醒\n软件将会在课程开始前的一段时间发送通知\n需要系统通知,提醒,和自启动权限" +
+                            "\n目前版本为提前25分钟提醒\n在发送通知25分钟后自动消失", fontSize = 12.sp, color = Color.Gray)
                 }
                 Switch(checked = isOnClock, onCheckedChange = {
                     value->

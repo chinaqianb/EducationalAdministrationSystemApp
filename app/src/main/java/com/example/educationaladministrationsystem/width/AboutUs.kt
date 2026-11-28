@@ -3,30 +3,15 @@ package com.example.educationaladministrationsystem.width
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,21 +20,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.SubcomposeAsyncImage
 import com.example.educationaladministrationsystem.processLogic.aboutUs.AboutUsViewModel
 import com.example.educationaladministrationsystem.width.settings.Settings
-import androidx.core.net.toUri
-import coil.compose.SubcomposeAsyncImage
-
 import com.composables.icons.lucide.R.drawable as Lucide
 
 class AboutUs {
@@ -58,20 +38,29 @@ class AboutUs {
         val isLoading by viewModel.isLoading.collectAsState()
         val isGet by viewModel.isGet.collectAsState()
         val context = LocalContext.current
-        Column(Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6)),
-            verticalArrangement = Arrangement.Top
+        var showDialog by remember { mutableStateOf(false) }
+        if (showDialog){
+            JoinUsDialog(context, viewModel,{showDialog=false})
+        }
+        Column(Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6))
+            .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Top,
         ){
           if (isLoading){
               Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                   CircularProgressIndicator(modifier = Modifier.size(30.dp))//转圈动画
               }
           }else{
-              RenderAboutUs(isGet,context)
-              Spacer(Modifier.height(5.dp))
-              RenderRepo(context)
-              Spacer(Modifier.height(5.dp))
-              RenderLicence(context)
-          }
+
+                  RenderAboutUs(isGet, context)
+                  Spacer(Modifier.height(5.dp))
+                  RenderJoinUs(context, { showDialog = true })
+                  Spacer(Modifier.height(5.dp))
+                  RenderRepo(context)
+                  Spacer(Modifier.height(5.dp))
+                  RenderLicence(context)
+              }
+
         }
     }
     @Composable
@@ -107,6 +96,25 @@ class AboutUs {
         }
     }
     @Composable
+    private fun RenderJoinUs(context: Context,onOpen:()-> Unit){
+
+            Row(modifier = Settings().SettingBoxModifier().clickable { onOpen() }, horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically){
+                Text("反馈bug与交流")
+                Text("加群", color = Color.Gray)
+            }
+
+    }
+    @Composable
+    private fun JoinUsDialog(context: Context,viewModel: AboutUsViewModel,onClose:()-> Unit){
+        AlertDialog(
+            onDismissRequest = {onClose()},
+            title = {Text("反馈与交流")},
+            text = {Text("qq群号:1106570018")},
+            confirmButton = {TextButton(onClick = {onClose()}){Text("取消")} },
+            dismissButton = {TextButton(onClick = {viewModel.addGroup(context);onClose()}){Text("加群")} }
+        )
+    }
+    @Composable
     private fun RenderRepo(context: Context){
         val repoUrl ="https://github.com/chinaqianb/EducationalAdministrationSystemApp"
         Settings().RenderSettingBoxItem("仓库地址",{openUrl(context,repoUrl)},{
@@ -125,6 +133,7 @@ class AboutUs {
     @Composable
     private fun RenderLicence(context: Context){
         Settings().RenderSettingBoxItem("许可证", content = {
+
             Spacer(Modifier.height(10.dp))
             Row {
                 Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_creative_commons), contentDescription = "cc")
@@ -161,6 +170,7 @@ class AboutUs {
                 Icon(imageVector = ImageVector.vectorResource(Lucide.lucide_ic_circle_equal), contentDescription = "noChange")
                 Text("禁止演绎 — 如果您 再混合、转换、或者基于该作品创作，您不可以分发修改作品")
             }
+            Spacer(Modifier.height(60.dp))
         })
     }
 }

@@ -47,10 +47,10 @@ class EASViewModel(application: Application): AndroidViewModel(application){
             _loading.value=false//结束加载
             if (url == null || url == lastSyncedUrl) return
             val thisCookies=handleJsPageInject(view,url)?:return
-            if (thisCookies.jsId.isEmpty()||thisCookies.route.isEmpty())return
-            lastSyncedUrl=url
+            if (thisCookies.jsId.isEmpty()||thisCookies.route.isEmpty()){return}
+                lastSyncedUrl=url
                 Log.d("eas","开始同步cookies:${thisCookies}")
-                ClassTableApi.cookieJar.syncCookies(url.orEmpty(),thisCookies)
+                ClassTableApi.cookieJar.syncCookies(url,thisCookies)
                 //登录成功后强制获取一次数据
                 viewModelScope.launch {
                     ClassTableClock.getClassTableList(application.applicationContext)
@@ -181,7 +181,7 @@ class EASViewModel(application: Application): AndroidViewModel(application){
                 if (/slogin\.html$/i.test(location.pathname)&&nameInput&&passwordInput&&loginButton){
                     nameInput.value='${name}';
                     passwordInput.value='${password}';
-//                    loginButton.click();
+                    loginButton.click();
                 }
             })();
         """.trimIndent()

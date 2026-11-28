@@ -1,67 +1,33 @@
 package com.example.educationaladministrationsystem.width.settings
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.Environment
 import android.util.Log
-import android.widget.ImageView
 import android.widget.Toast
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.educationaladministrationsystem.processLogic.aboutUs.AboutUsViewModel
 import com.example.educationaladministrationsystem.processLogic.settings.SettingsViewModel
+import com.mikepenz.markdown.m3.Markdown
 import java.io.File
 import com.composables.icons.lucide.R.drawable as Lucide
+
 class VersionInfoSetting {
 
     @Composable
@@ -85,17 +51,15 @@ class VersionInfoSetting {
                 dialogMessage="未发现新版本"
                 onClickEvent={showDialog=false}
                 showDialog=true
-                Log.d("version_setting","no_need_emit")
             }
         }
         LaunchedEffect(Unit){
             viewModel.needUpdate.collect {
                 dialogTitle="更新新版本"
-                dialogMessage="发现新的版本${it.tag},下载地址${it.url}"
+                dialogMessage="发现新的版本${it.tag},下载地址${it.url}\n更新内容:\n${it.text}"
                 onClickEvent={//viewModel.downNewVersion(SettingsViewModel.DownloadInf(it.tag,it.url,it.fileHash),context);
                     showDialog=false}
                 showDialog=true
-                Log.d("version_setting","need_emit")
             }
         }
         LaunchedEffect(Unit){
@@ -127,7 +91,8 @@ class VersionInfoSetting {
         if (showDialog) {
             RenderDialog({showDialog=false},dialogTitle,dialogMessage,{onClickEvent?.invoke()})
         }
-        Column(Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6)),
+        Column(Modifier.padding(paddingValues).fillMaxSize().background(Color(0xFFF6F6F6))
+            .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top
         ){
             RenderVersionComponent(context,viewModel)
@@ -196,22 +161,29 @@ class VersionInfoSetting {
             Text(buildAnnotatedString {
                 append("新的版本:")
                 withStyle(style = SpanStyle(color = Color.Blue)){append(version.tag)}
-                append(",下载地址:\n")
+                append("\ngithub release:")
+                withLink(LinkAnnotation.Url(
+                    url = version.htmlUrl,
+                    styles = TextLinkStyles(SpanStyle(fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline))
+                )){append(version.htmlUrl)}
+                append("\n下载地址:")
                 withLink(LinkAnnotation.Url(
                     url = version.url,
                     styles = TextLinkStyles(SpanStyle(fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline))
                 )){append(version.url)}
+
                 if (isOnDownload){
                     append("正在下载中...")
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = {(downloadProgress/100).toFloat()})
                 }
             })
-            Button(
-                onClick = {viewModel.downloadUpdateApp()},
-                enabled = !isOnDownload
-            ){
-                Text("下载版本")
-            }
+            Markdown(content = version.text)
+//            Button(
+//                onClick = {viewModel.downloadUpdateApp()},
+//                enabled = !isOnDownload
+//            ){
+//                Text("下载版本")
+//            }//下载功能禁用
 
         })
     }
@@ -227,7 +199,7 @@ class VersionInfoSetting {
         AlertDialog(
             onDismissRequest = {onClose()},
             title ={Text(title)},
-            text={Text(des)},
+            text={Markdown(des)},
             confirmButton = { TextButton(onClick ={ onClick() }){Text("确认")} },
             dismissButton = {TextButton(onClick = {onClose()}){Text("取消")} }
         )
