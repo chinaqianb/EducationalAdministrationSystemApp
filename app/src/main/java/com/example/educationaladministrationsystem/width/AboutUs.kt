@@ -110,8 +110,8 @@ class AboutUs {
             onDismissRequest = {onClose()},
             title = {Text("反馈与交流")},
             text = {Text("qq群号:1106570018")},
-            confirmButton = {TextButton(onClick = {onClose()}){Text("取消")} },
-            dismissButton = {TextButton(onClick = {viewModel.addGroup(context);onClose()}){Text("加群")} }
+            confirmButton = {TextButton(onClick = {viewModel.addGroup(context);onClose()}){Text("加群")} },
+            dismissButton = { TextButton(onClick = {onClose()}){Text("取消")}}
         )
     }
     @Composable

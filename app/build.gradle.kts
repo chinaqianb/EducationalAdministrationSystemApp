@@ -17,8 +17,8 @@ android {
         applicationId = "com.example.educationaladministrationsystem"
         minSdk = 26
         targetSdk = 36
-        versionCode = 23
-        versionName = "1.3.3"
+        versionCode = 24
+        versionName = "1.3.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -43,7 +43,7 @@ androidComponents {
             val variantOutput = output as com.android.build.api.variant.impl.VariantOutputImpl
 
 
-            variantOutput.outputFileName.set("教务系统-debug-${output.versionName.get()}.apk")
+            variantOutput.outputFileName.set("EAS-debug-${output.versionName.get()}.apk")
         }
     }
     onVariants(selector().withBuildType("release")) { variant ->
@@ -52,7 +52,7 @@ androidComponents {
             val variantOutput = output as com.android.build.api.variant.impl.VariantOutputImpl
 
 
-            variantOutput.outputFileName.set("教务系统-${output.versionName.get()}.apk")
+            variantOutput.outputFileName.set("EAS-${output.versionName.get()}.apk")
         }
     }
 }
@@ -82,8 +82,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-gif:2.7.0")
     //markdown
-    implementation("com.mikepenz:multiplatform-markdown-renderer:0.41.0")
-    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.41.0")
+    implementation("com.mikepenz:multiplatform-markdown-renderer:0.38.0")
+    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.38.0")
     //更新app库
     implementation("io.github.chiclaim:downloader:1.0.2")
     //ksoup

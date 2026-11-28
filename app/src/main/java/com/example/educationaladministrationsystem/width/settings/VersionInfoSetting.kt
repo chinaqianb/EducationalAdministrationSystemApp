@@ -56,7 +56,7 @@ class VersionInfoSetting {
         LaunchedEffect(Unit){
             viewModel.needUpdate.collect {
                 dialogTitle="更新新版本"
-                dialogMessage="发现新的版本${it.tag},下载地址${it.url}\n更新内容:\n${it.text}"
+                dialogMessage="- 发现新的版本${it.tag}\r\n- 下载地址${it.url}\r\n- 更新内容:\r\n${it.text}"
                 onClickEvent={//viewModel.downNewVersion(SettingsViewModel.DownloadInf(it.tag,it.url,it.fileHash),context);
                     showDialog=false}
                 showDialog=true
@@ -109,7 +109,18 @@ class VersionInfoSetting {
                     viewModel
                 )
             }
+            TestMarkdown()
         }
+    }
+    @Composable
+    private fun TestMarkdown(){
+        Settings().RenderSettingBoxItem("测试markdown", content = {
+            val content="- 修复了安装新版本之后，提醒失效的bug\r\n- 修复了webview显示错误的bug\r\n- 修改了EAS页面的架构，增加了启动的速度\r\n- 修复了进入webview界面重复重复同步课表的操作\r\n- 修复了由于教务系统的变动导致的课表无法正常同步的情况\r\n\r\n**Full Changelog**: https://github.com/chinaqianb/EducationalAdministrationSystemApp/compare/1.3.1...1.3.2"
+            Text("内容的")
+            Markdown(content)
+            Text("无内容的")
+            Markdown("未发现新版本")
+        })
     }
     @Composable
     private fun RenderVersionNew(downloadProgress: Int,file: File,isOnDownload: Boolean, versionInf: SettingsViewModel.DownloadInf, hasVersion: Boolean, hasApk: Boolean, context: Context, viewModel: SettingsViewModel.VersionSettingViewModel){
@@ -161,7 +172,7 @@ class VersionInfoSetting {
             Text(buildAnnotatedString {
                 append("新的版本:")
                 withStyle(style = SpanStyle(color = Color.Blue)){append(version.tag)}
-                append("\ngithub release:")
+                append("\nrelease:")
                 withLink(LinkAnnotation.Url(
                     url = version.htmlUrl,
                     styles = TextLinkStyles(SpanStyle(fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline))
@@ -199,7 +210,9 @@ class VersionInfoSetting {
         AlertDialog(
             onDismissRequest = {onClose()},
             title ={Text(title)},
-            text={Markdown(des)},
+            text={Markdown(des,modifier = Modifier
+                .wrapContentHeight()
+                .heightIn(max = 400.dp))},
             confirmButton = { TextButton(onClick ={ onClick() }){Text("确认")} },
             dismissButton = {TextButton(onClick = {onClose()}){Text("取消")} }
         )
